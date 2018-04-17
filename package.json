@@ -1,0 +1,19 @@
+{
+  "name": "easyhttp",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/easy-http.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Y-bao/EasyHttp.git"
+  },
+  "author": "Ybao",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Y-bao/EasyHttp/issues"
+  },
+  "homepage": "https://github.com/Y-bao/EasyHttp#readme"
+}
