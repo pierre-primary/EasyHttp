@@ -1,8 +1,8 @@
 {
-    "name": "easyhttp",
+    "name": "easy-http",
     "version": "1.0.0",
     "description": "",
-    "main": "src/easy-http.js",
+    "main": "dist/easy-http.common.js",
     "scripts": {
         "build": "node build/rollup.prod.js"
     },

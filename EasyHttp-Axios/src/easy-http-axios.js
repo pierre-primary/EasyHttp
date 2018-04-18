@@ -1,6 +1,6 @@
-const EasyHttp = require("./easy-http.js");
-const axios = require("axios");
-var Base64 = require("js-base64").Base64;
+import EasyHttp from "easy-http";
+import axios from "axios";
+
 EasyHttp.bindAction("", (resolve, reject, url) => {
     axios
         .get(url)
@@ -31,12 +31,7 @@ EasyHttp.bindAction("post", (resolve, reject, url) => {
             reject(error);
         });
 });
-EasyHttp.addDefProcessor(e => {
-    return JSON.stringify(e);
-});
-EasyHttp.addDefProcessor(e => {
-    return Base64.encode(e);
-});
+
 //
 var ggg = new EasyHttp("http://test.com", {
     gg: null,
