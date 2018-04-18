@@ -1,12 +1,20 @@
-const reg = /(?:\[([^{\[]*))?{\s*([a-z_][a-z0-9_]*)\s*((?::[a-z_][a-z0-9_]*)*)\s*}(?:([^}\]]*)\])?/gi;
+const reg = /(?:\[([^{[]*))?{\s*([a-z_][a-z0-9_]*)\s*((?::[a-z_][a-z0-9_]*)*)\s*}(?:([^}\]]*)\])?/gi;
 
+function is(value, type) {
+    // 先处理null和undefined
+    if (value == null) {
+        return value === type;
+    }
+    // instanceof 判断继承
+    return value.constructor === type || value instanceof type;
+}
 class EasyHttp {
     constructor(baseUrl, obj) {
         this.baseUrl = baseUrl;
         if (obj) {
             this.src = {};
             for (let key in obj) {
-                this.src[key] = obj[key];
+                this.src[key] = this.createSrc(obj[key]);
                 Object.defineProperty(this, key, {
                     get: function() {
                         let item = this.getRequestItem(key);
@@ -17,62 +25,131 @@ class EasyHttp {
         }
     }
 
+    createSrc(obj) {
+        let src;
+        if (obj && is(obj, Object)) {
+            src = {
+                action: obj.action,
+                urlFormat: obj.urlFormat
+            };
+            if (obj.dictate) {
+                let _dictate = obj.dictate.split(":");
+                _dictate.forEach(e => {
+                    if (e) {
+                        src.dictate || (src.dictate = new Array());
+                        src.dictate.push(e);
+                    }
+                });
+            }
+        } else {
+            src = {
+                urlFormat: obj
+            };
+        }
+        return src;
+    }
+
     getRequestItem(key) {
         this.requests || (this.requests = {});
         if (key in this.src && !(key in this.requests)) {
-            this.requests[key] = this.createRequestHandler(this.src[key]);
+            this.requests[key] = this.createRequestItem(this.src[key]);
         }
         return this.requests && this.requests[key];
     }
-    createRequestHandler(urlFormat) {
+
+    createRequestItem(src) {
         let item = {};
         let result;
-        while ((result = reg.exec(urlFormat)) != null) {
-            let match = result[0];
-            let prefix = result[1];
-            let suffix = result[4];
-            let key = result[2];
-            let dictate;
+        while ((result = reg.exec(src.urlFormat)) != null) {
+            var key = result[2];
+            let matchs = {
+                match: result[0],
+                prefix: result[1],
+                suffix: result[4]
+            };
             if (result[3]) {
                 let _dictate = result[3].split(":");
                 _dictate.forEach(e => {
                     if (e) {
-                        dictate || (dictate = new Array());
-                        dictate.push(e);
+                        matchs.dictate || (matchs.dictate = new Array());
+                        matchs.dictate.push(e);
                     }
                 });
             }
             item.matchsMap || (item.matchsMap = {});
-            item.matchsMap[key] = {
-                match,
-                prefix,
-                suffix,
-                dictate
-            };
+            item.matchsMap[key] = matchs;
         }
         let parentObj = this;
-        item.handler = function(data) {
-            return new Promise(function(resolve, reject) {
-                let qStr = parentObj.analysis(urlFormat, item.matchsMap, data);
-                let url = parentObj.baseUrl + qStr;
-                resolve(url);
-            });
-        };
+        Object.defineProperty(item, "handler", {
+            get: function() {
+                return parentObj.createHandler(src, item);
+            }
+        });
         return item;
     }
-    analysis(urlFormat, matchsMap, data) {
-        if (matchsMap && data) {
+
+    createHandler(src, item) {
+        let parentObj = this;
+        let handler = function(data) {
+            return new Promise(
+                function(resolve, reject) {
+                    let url = this.getUrl(data);
+                    var action =
+                        EasyHttp.actionMap &&
+                        (EasyHttp.actionMap[src.action || ""] ||
+                            EasyHttp.actionMap[""]);
+                    if (action) {
+                        action(resolve, reject, url);
+                    } else {
+                        let msg = src.action
+                            ? "not found the action:'" + src.action + "'"
+                            : "not found default action";
+                        reject(msg);
+                    }
+                }.bind(handler)
+            );
+        };
+        let getUrl = function(data) {
+            let qStr = parentObj.analysis(src, item.matchsMap, data);
+            let url = parentObj.baseUrl + qStr;
+            return url;
+        };
+        Object.defineProperty(handler, "getUrl", {
+            get: function() {
+                return getUrl;
+            }
+        });
+        let header = function(header) {
+            this.header = header;
+            return this;
+        }.bind(handler);
+        Object.defineProperty(handler, "header", {
+            get: function() {
+                return header;
+            }
+        });
+        return handler;
+    }
+
+    analysis(src, matchsMap, data) {
+        let urlFormat = src.urlFormat;
+        if (matchsMap) {
+            data || (data = {});
             for (let key in matchsMap) {
                 let match = matchsMap[key];
                 let value = data[key];
-                if (match.dictate) {
-                    match.dictate.forEach(e => {
+                let dictate = match.dictate || src.dictate;
+                if (dictate) {
+                    dictate.forEach(e => {
                         var dictateHandler =
-                            (this.dictateMap && this.dictateMap[e]) ||
-                            (EasyHttp.dictateMap && EasyHttp.dictateMap[e]);
+                            EasyHttp.dictateMap && EasyHttp.dictateMap[e];
                         if (dictateHandler) {
                             value = dictateHandler(value);
                         }
+                    });
+                } else if (EasyHttp.processors) {
+                    EasyHttp.processors.forEach(p => {
+                        value = p(value);
                     });
                 }
                 if (value) {
@@ -86,32 +163,15 @@ class EasyHttp {
         urlFormat || (urlFormat = "");
         return urlFormat;
     }
-    bindDictate(dictate, handler) {
-        if (!dictate || !handler) {
+
+    static bindAction(actionName, action) {
+        if (!action) {
             return;
         }
-        this.dictateMap || (this.dictateMap = {});
-        this.dictateMap[dictate] = handler;
+        EasyHttp.actionMap || (EasyHttp.actionMap = {});
+        EasyHttp.actionMap[actionName || ""] = action;
     }
-    unBindDictate(dictate) {
-        dictate &&
-            this.dictateMap &&
-            dictate in this.dictateMap &&
-            delete this.dictateMap[dictate];
-    }
-    static bindAction(dictate, handler) {
-        if (!dictate || !handler) {
-            return;
-        }
-        EasyHttp.dictateMap || (EasyHttp.dictateMap = {});
-        EasyHttp.dictateMap[dictate] = handler;
-    }
-    static unBindAction(dictate) {
-        dictate &&
-            EasyHttp.dictateMap &&
-            dictate in EasyHttp.dictateMap &&
-            delete EasyHttp.dictateMap[dictate];
-    }
+
     static bindDictate(dictate, handler) {
         if (!dictate || !handler) {
             return;
@@ -119,33 +179,13 @@ class EasyHttp {
         EasyHttp.dictateMap || (EasyHttp.dictateMap = {});
         EasyHttp.dictateMap[dictate] = handler;
     }
-    static unBindDictate(dictate) {
-        dictate &&
-            EasyHttp.dictateMap &&
-            dictate in EasyHttp.dictateMap &&
-            delete EasyHttp.dictateMap[dictate];
-    }
 
-    static addDefProcessor(index, ...processors) {
+    static addDefProcessor(...processors) {
         if (!processors) {
             return;
         }
-        EasyHttp.preprocessors || (EasyHttp.preprocessors = new Array());
-        EasyHttp.preprocessors.push(processors);
+        EasyHttp.processors || (EasyHttp.processors = new Array());
+        EasyHttp.processors.push(...processors);
     }
 }
-//
-var ggg = new EasyHttp("http://test.com", {
-    gg: null,
-    gg2: "/{a}/{b:j:u:b}/[act/{c:hhh}/act/]",
-    gg3: "/1"
-});
-var i = ggg.gg2({ a: 1, b: 2, c: 3 }).then(e => {
-    console.log(e);
-});
-i = ggg.gg().then(e => {
-    console.log(e);
-});
-i = ggg.gg3().then(e => {
-    console.log(e);
-});
+export default EasyHttp;
