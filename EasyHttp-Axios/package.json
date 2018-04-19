@@ -1,10 +1,9 @@
 {
-  "name": "easyhttp",
+  "name": "easy-http-axios",
   "version": "1.0.0",
   "description": "",
   "main": "dist/easy-http-axios.common.js",
   "scripts": {
-    "start": "rollup --config build/rollup.dev.js",
     "build": "node build/rollup.prod.js"
   },
   "devDependencies": {
@@ -22,7 +21,6 @@
     "uglify-js": "^3.3.21"
   },
   "dependencies": {
-    "axios": "^0.18.0",
-    "easy-http": "^1.0.0"
+    "axios": "^0.18.0"
   }
 }

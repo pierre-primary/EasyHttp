@@ -36,13 +36,17 @@ function genConfig(opts) {
                     exclude: "node_modules/**"
                 })
             ],
-            external: ["easy-http", "axios"]
+            external: ["axios"]
         },
         output: {
             file: opts.output,
             format: opts.format,
             banner,
-            min: opts.min
+            min: opts.min,
+            name: "EasyHttpAxios",
+            globals: {
+                axios: "axios"
+            }
         }
     };
 }

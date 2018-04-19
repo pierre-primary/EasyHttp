@@ -3,57 +3,36 @@
 * (c) 2018-2018 PengYuan-Jiang
 */
 (function (global, factory) {
-    typeof exports === 'object' && typeof module !== 'undefined' ? factory(require('easy-http'), require('axios')) :
-    typeof define === 'function' && define.amd ? define(['easy-http', 'axios'], factory) :
-    (factory(global.EasyHttp,global.axios));
-}(this, (function (EasyHttp,axios) { 'use strict';
+    typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory(require('axios')) :
+    typeof define === 'function' && define.amd ? define(['axios'], factory) :
+    (global.EasyHttpAxios = factory(global.axios));
+}(this, (function (axios) { 'use strict';
 
-    EasyHttp = EasyHttp && EasyHttp.hasOwnProperty('default') ? EasyHttp['default'] : EasyHttp;
     axios = axios && axios.hasOwnProperty('default') ? axios['default'] : axios;
 
-    EasyHttp.bindAction("", function (resolve, reject, url) {
-        axios.get(url).then(function (response) {
-            resolve(response.data);
-        }).catch(function (error) {
-            reject(error);
-        });
-    });
-    EasyHttp.bindAction("get", function (resolve, reject, url) {
+    function get(resolve, reject, url) {
         axios.get(url).then(function (response) {
             resolve(response);
         }).catch(function (error) {
             reject(error);
         });
-    });
-    EasyHttp.bindAction("post", function (resolve, reject, url) {
+    }
+    function post(resolve, reject, url) {
         axios.post(url).then(function (response) {
             resolve(response);
         }).catch(function (error) {
             reject(error);
         });
-    });
+    }
 
-    //
-    var ggg = new EasyHttp("http://test.com", {
-        gg: null,
-        gg2: "/{a}/{b:j:u:b}/[act/{c:hhh}/act/]",
-        gg3: "/haha?[a={a}][&b={b}][&c={c}]"
-    });
-    console.log(ggg.gg3.getUrl({ a: { gg: { gg: "" } }, b: 2, c: 3 }));
-    var i = ggg.gg2({ a: 1, b: 2, c: 3 }).then(function (e) {
-        // console.log(e);
-    }).catch(function (e) {
-        // console.log(e);
-    });
-    i = ggg.gg().then(function (e) {
-        // console.log(e);
-    }).catch(function (e) {
-        // console.log(e);
-    });
-    i = ggg.gg3({ a: 1, b: 2, c: 3 }).then(function (e) {
-        // console.log(e);
-    }).catch(function (e) {
-        // console.log(e);
-    });
+    var easyHttpAxios = {
+        install: function install(host) {
+            host.bindAction("", get);
+            host.bindAction("get", get);
+            host.bindAction("post", post);
+        }
+    };
+
+    return easyHttpAxios;
 
 })));
