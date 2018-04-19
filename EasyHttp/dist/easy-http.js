@@ -10,16 +10,16 @@
 
     var Logger = {
         i: function i(key, str) {
-            console.log(key + ": " + str);
+            console.log(key + ":", str);
         },
         d: function d(key, str) {
-            console.debug(key + ": " + str);
+            console.debug(key + ":", str);
         },
         w: function w(key, str) {
-            console.warn(key + ": " + str);
+            console.warn(key + ":", str);
         },
         e: function e(key, str) {
-            console.error(key + ": " + str);
+            console.error(key + ":", str);
         }
     };
 
@@ -28,7 +28,7 @@
     function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
     var reg = /(?:\[([^{[]*))?{\s*([a-z_][a-z0-9_]*)\s*((?::[a-z_][a-z0-9_]*)*)\s*}(?:([^}\]]*)\])?/gi;
 
-    var _ref = [Symbol("createSrc"), Symbol("getRequestItem"), Symbol("createRequestItem"), Symbol("createHandler"), Symbol("analysis"), Symbol("baseUrl"), Symbol("src"), Symbol("requests"), Symbol("dictateMap"), Symbol("actionMap"), Symbol("serializater"), Symbol("processors"), Symbol("logConfig")],
+    var _ref = [Symbol("createSrc"), Symbol("getRequestItem"), Symbol("createRequestItem"), Symbol("createHandler"), Symbol("analysis"), Symbol("baseUrl"), Symbol("src"), Symbol("requests"), Symbol("dictateMap"), Symbol("actionMap"), Symbol("serializater"), Symbol("processors"), Symbol("errorHandler"), Symbol("logConfig")],
         createSrc = _ref[0],
         getRequestItem = _ref[1],
         createRequestItem = _ref[2],
@@ -41,7 +41,8 @@
         actionMap = _ref[9],
         serializater = _ref[10],
         processors = _ref[11],
-        _logConfig2 = _ref[12];
+        errorHandler = _ref[12],
+        _logConfig2 = _ref[13];
 
     function is(value, type) {
         // 先处理null和undefined
@@ -51,11 +52,16 @@
         // instanceof 判断继承
         return value.constructor === type || value instanceof type;
     }
+
     function defSerializater(value) {
         if (is(value, Object)) {
             value = JSON.stringify(value);
         }
         return value;
+    }
+
+    function defErrorHandler(reason) {
+        Logger.e("EasyHttp-Error", reason && reason.toString() || reason);
     }
 
     var EasyHttp = function () {
@@ -164,24 +170,27 @@
                 var handler = function handler(data) {
                     var promise = new Promise(function (_resolve, _reject) {
                         function resolve(value) {
-                            Logger.i(value);
+                            Logger.i("EasyHttp-Response", value && value.data != undefined && value.data || value);
                             return _resolve(value);
                         }
                         function reject(reason) {
-                            Logger.e(reason);
-                            return handleCatch ? _reject(reason) : false;
+                            if (handleCatch) {
+                                return _reject(reason);
+                            } else {
+                                var eHandler = parentObj[errorHandler] || EasyHttp[errorHandler] || defErrorHandler;
+                                return eHandler(reason);
+                            }
                         }
                         var url = this.getUrl(data);
-                        i("EasyHttp-Url", url);
+                        Logger.i("EasyHttp-Url", url);
                         var actionName = (src.action || "").toLowerCase();
                         var action = this[actionMap] && this[actionMap][actionName] || EasyHttp[actionMap] && EasyHttp[actionMap][actionName];
                         if (!action) {
-                            var msg = src.action ? "not found the action:'" + src.action + "'" : "not found default action";
-                            reject(msg);
+                            var msg = actionName ? "not found the action:'" + actionName + "'" : "not found default action";
+                            Logger.w(msg);
                         } else if (!is(action, Function)) {
-                            var _msg = src.action ? "the action:'" + src.action + "' is not Function" : "default action is not Function";
-                            reject(_msg);
-                            return;
+                            var _msg = actionName ? "the action:'" + actionName + "' is not Function" : "default action is not Function";
+                            Logger.w(_msg);
                         } else {
                             action(resolve, reject, url);
                         }
@@ -262,99 +271,7 @@
                 urlFormat || (urlFormat = "");
                 return urlFormat;
             }
-        }, {
-            key: "bindAction",
-            value: function bindAction(actionName, action) {
-                actionName || (actionName = "");
-                this[actionMap] || (this[actionMap] = {});
-                if (!action) {
-                    return;
-                }
-                this[actionMap][actionName.toLowerCase()] = action;
-            }
-        }, {
-            key: "bindDictate",
-            value: function bindDictate(dictate, handler) {
-                this[dictateMap] || (this[dictateMap] = {});
-                if (!dictate || !handler) {
-                    return;
-                }
-                this[dictateMap][dictate.toLowerCase()] = handler;
-            }
-        }, {
-            key: "setSerializater",
-            value: function setSerializater(_serializater) {
-                this[serializater] = _serializater;
-            }
-        }, {
-            key: "addProcessor",
-            value: function addProcessor() {
-                var _processors3;
-
-                for (var _len = arguments.length, _processors = Array(_len), _key = 0; _key < _len; _key++) {
-                    _processors[_key] = arguments[_key];
-                }
-
-                this[processors] || (this[processors] = new Array());
-                if (!_processors) {
-                    return;
-                }
-                (_processors3 = this[processors]).push.apply(_processors3, _processors);
-            }
-        }, {
-            key: "use",
-            value: function use(plugin) {
-                if (plugin && plugin.install && is(plugin.install, Function)) {
-                    plugin.install(this);
-                }
-            }
         }], [{
-            key: "bindAction",
-            value: function bindAction(actionName, action) {
-                actionName || (actionName = "");
-                this[actionMap] || (this[actionMap] = {});
-                if (!action) {
-                    return;
-                }
-                this[actionMap][actionName.toLowerCase()] = action;
-            }
-        }, {
-            key: "bindDictate",
-            value: function bindDictate(dictate, handler) {
-                this[dictateMap] || (this[dictateMap] = {});
-                if (!dictate || !handler) {
-                    return;
-                }
-                this[dictateMap][dictate.toLowerCase()] = handler;
-            }
-        }, {
-            key: "setSerializater",
-            value: function setSerializater(_serializater) {
-                this[serializater] = _serializater;
-            }
-        }, {
-            key: "addProcessor",
-            value: function addProcessor() {
-                var _processors4;
-
-                for (var _len2 = arguments.length, _processors = Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
-                    _processors[_key2] = arguments[_key2];
-                }
-
-                this[processors] || (this[processors] = new Array());
-                if (!_processors) {
-                    return;
-                }
-                (_processors4 = this[processors]).push.apply(_processors4, _processors);
-            }
-        }, {
-            key: "use",
-            value: function use(plugin) {
-                if (plugin && plugin.install && is(plugin.install, Function)) {
-                    plugin.install(this);
-                }
-            }
-        }, {
             key: "logConfig",
             value: function logConfig(_logConfig) {
                 this[_logConfig2] = _logConfig;
@@ -363,6 +280,74 @@
 
         return EasyHttp;
     }();
+
+    var funcs = {
+        bindAction: function bindAction(actionName, action) {
+            actionName || (actionName = "");
+            this[actionMap] || (this[actionMap] = {});
+            if (!action) {
+                return;
+            }
+            this[actionMap][actionName.toLowerCase()] = action;
+        },
+
+        bindDictate: function bindDictate(dictate, handler) {
+            this[dictateMap] || (this[dictateMap] = {});
+            if (!dictate || !handler) {
+                return;
+            }
+            this[dictateMap][dictate.toLowerCase()] = handler;
+        },
+
+        setSerializater: function setSerializater(_serializater) {
+            this[serializater] = _serializater;
+        },
+
+        setErrorHandler: function setErrorHandler(_errorHandler) {
+            this[errorHandler] = _errorHandler;
+        },
+
+        addProcessor: function addProcessor() {
+            var _processors3;
+
+            for (var _len = arguments.length, _processors = Array(_len), _key = 0; _key < _len; _key++) {
+                _processors[_key] = arguments[_key];
+            }
+
+            this[processors] || (this[processors] = new Array());
+            if (!_processors) {
+                return;
+            }
+            (_processors3 = this[processors]).push.apply(_processors3, _processors);
+        },
+        use: function use(plugin) {
+            if (plugin && plugin.install && is(plugin.install, Function)) {
+                plugin.install(this);
+            }
+        }
+    };
+
+    var _loop3 = function _loop3(key) {
+        Object.defineProperty(EasyHttp, key, {
+            get: function get() {
+                return function () {
+                    funcs[key].apply(this, arguments);
+                }.bind(this);
+            }
+        });
+
+        Object.defineProperty(EasyHttp.prototype, key, {
+            get: function get() {
+                return function () {
+                    funcs[key].apply(this, arguments);
+                }.bind(this);
+            }
+        });
+    };
+
+    for (var key in funcs) {
+        _loop3(key);
+    }
 
     return EasyHttp;
 

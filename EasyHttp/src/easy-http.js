@@ -1,6 +1,9 @@
 import Logger from "./utils/Logger.js";
+
+//匹配规则
 const reg = /(?:\[([^{[]*))?{\s*([a-z_][a-z0-9_]*)\s*((?::[a-z_][a-z0-9_]*)*)\s*}(?:([^}\]]*)\])?/gi;
 
+//私有属性名
 const [
     createSrc,
     getRequestItem,
@@ -14,6 +17,7 @@ const [
     actionMap,
     serializater,
     processors,
+    errorHandler,
     logConfig
 ] = [
     Symbol("createSrc"),
@@ -28,8 +32,16 @@ const [
     Symbol("actionMap"),
     Symbol("serializater"),
     Symbol("processors"),
+    Symbol("errorHandler"),
     Symbol("logConfig")
 ];
+/**
+ * 判断对象类型 （无法区分Function Is Object）
+ *
+ * @param {any} value
+ * @param {any} type
+ * @returns
+ */
 function is(value, type) {
     // 先处理null和undefined
     if (value == undefined) {
@@ -38,11 +50,16 @@ function is(value, type) {
     // instanceof 判断继承
     return value.constructor === type || value instanceof type;
 }
+
 function defSerializater(value) {
     if (is(value, Object)) {
         value = JSON.stringify(value);
     }
     return value;
+}
+
+function defErrorHandler(reason) {
+    Logger.e("EasyHttp-Error", (reason && reason.toString()) || reason);
 }
 
 class EasyHttp {
@@ -62,6 +79,13 @@ class EasyHttp {
         }
     }
 
+    /**
+     *生成url模板信息
+     *
+     * @param {any} obj
+     * @returns
+     * @memberof EasyHttp
+     */
     [createSrc](obj) {
         let src;
         if (obj && is(obj, Object)) {
@@ -133,31 +157,41 @@ class EasyHttp {
             let promise = new Promise(
                 function(_resolve, _reject) {
                     function resolve(value) {
-                        Logger.i(value);
+                        Logger.i(
+                            "EasyHttp-Response",
+                            (value && value.data != undefined && value.data) ||
+                                value
+                        );
                         return _resolve(value);
                     }
                     function reject(reason) {
-                        Logger.e(reason);
-                        return handleCatch ? _reject(reason) : false;
+                        if (handleCatch) {
+                            return _reject(reason);
+                        } else {
+                            let eHandler =
+                                parentObj[errorHandler] ||
+                                EasyHttp[errorHandler] ||
+                                defErrorHandler;
+                            return eHandler(reason);
+                        }
                     }
                     let url = this.getUrl(data);
-                    i("EasyHttp-Url", url);
+                    Logger.i("EasyHttp-Url", url);
                     let actionName = (src.action || "").toLowerCase();
                     let action =
                         (this[actionMap] && this[actionMap][actionName]) ||
                         (EasyHttp[actionMap] &&
                             EasyHttp[actionMap][actionName]);
                     if (!action) {
-                        let msg = src.action
-                            ? "not found the action:'" + src.action + "'"
+                        let msg = actionName
+                            ? "not found the action:'" + actionName + "'"
                             : "not found default action";
-                        reject(msg);
+                        Logger.w(msg);
                     } else if (!is(action, Function)) {
-                        let msg = src.action
-                            ? "the action:'" + src.action + "' is not Function"
+                        let msg = actionName
+                            ? "the action:'" + actionName + "' is not Function"
                             : "default action is not Function";
-                        reject(msg);
-                        return;
+                        Logger.w(msg);
                     } else {
                         action(resolve, reject, url);
                     }
@@ -165,36 +199,29 @@ class EasyHttp {
             );
             return promise;
         };
-        let getUrl = function(data) {
-            let qStr = parentObj[analysis](src, item.matchsArray, data);
-            let url = parentObj[baseUrl] + qStr;
-            return url;
-        };
         Object.defineProperty(handler, "getUrl", {
             get: function() {
-                return getUrl;
+                return function(data) {
+                    let qStr = parentObj[analysis](src, item.matchsArray, data);
+                    let url = parentObj[baseUrl] + qStr;
+                    return url;
+                };
             }
         });
-        let header = function(header) {
-            this.header = header;
-            return this;
-        }.bind(handler);
         Object.defineProperty(handler, "header", {
             get: function() {
-                return header;
+                return function(header) {
+                    handler.header = header;
+                    return handler;
+                };
             }
         });
-        let defCatchHandler = function() {
-            handleCatch = true;
-            if (arguments && arguments.length > 0) {
-                return this(...arguments);
-            } else {
-                return this;
-            }
-        }.bind(handler);
-        Object.defineProperty(handler, "c", {
+        Object.defineProperty(handler, "catch", {
             get: function() {
-                return defCatchHandler;
+                return function(_handleCatch) {
+                    handleCatch = _handleCatch;
+                    return handler;
+                };
             }
         });
         return handler;
@@ -242,75 +269,73 @@ class EasyHttp {
         return urlFormat;
     }
 
-    bindAction(actionName, action) {
-        actionName || (actionName = "");
-        this[actionMap] || (this[actionMap] = {});
-        if (!action) {
-            return;
-        }
-        this[actionMap][actionName.toLowerCase()] = action;
-    }
-
-    bindDictate(dictate, handler) {
-        this[dictateMap] || (this[dictateMap] = {});
-        if (!dictate || !handler) {
-            return;
-        }
-        this[dictateMap][dictate.toLowerCase()] = handler;
-    }
-
-    setSerializater(_serializater) {
-        this[serializater] = _serializater;
-    }
-
-    addProcessor(..._processors) {
-        this[processors] || (this[processors] = new Array());
-        if (!_processors) {
-            return;
-        }
-        this[processors].push(..._processors);
-    }
-    use(plugin) {
-        if (plugin && plugin.install && is(plugin.install, Function)) {
-            plugin.install(this);
-        }
-    }
-
-    static bindAction(actionName, action) {
-        actionName || (actionName = "");
-        this[actionMap] || (this[actionMap] = {});
-        if (!action) {
-            return;
-        }
-        this[actionMap][actionName.toLowerCase()] = action;
-    }
-
-    static bindDictate(dictate, handler) {
-        this[dictateMap] || (this[dictateMap] = {});
-        if (!dictate || !handler) {
-            return;
-        }
-        this[dictateMap][dictate.toLowerCase()] = handler;
-    }
-
-    static setSerializater(_serializater) {
-        this[serializater] = _serializater;
-    }
-
-    static addProcessor(..._processors) {
-        this[processors] || (this[processors] = new Array());
-        if (!_processors) {
-            return;
-        }
-        this[processors].push(..._processors);
-    }
-    static use(plugin) {
-        if (plugin && plugin.install && is(plugin.install, Function)) {
-            plugin.install(this);
-        }
-    }
     static logConfig(_logConfig) {
         this[logConfig] = _logConfig;
     }
 }
+
+/**
+ * 外部配置方法
+ */
+const funcs = {
+    bindAction: function(actionName, action) {
+        actionName || (actionName = "");
+        this[actionMap] || (this[actionMap] = {});
+        if (!action) {
+            return;
+        }
+        this[actionMap][actionName.toLowerCase()] = action;
+    },
+
+    bindDictate: function(dictate, handler) {
+        this[dictateMap] || (this[dictateMap] = {});
+        if (!dictate || !handler) {
+            return;
+        }
+        this[dictateMap][dictate.toLowerCase()] = handler;
+    },
+
+    setSerializater: function(_serializater) {
+        this[serializater] = _serializater;
+    },
+
+    setErrorHandler: function(_errorHandler) {
+        this[errorHandler] = _errorHandler;
+    },
+
+    addProcessor: function(..._processors) {
+        this[processors] || (this[processors] = new Array());
+        if (!_processors) {
+            return;
+        }
+        this[processors].push(..._processors);
+    },
+    use: function(plugin) {
+        if (plugin && plugin.install && is(plugin.install, Function)) {
+            plugin.install(this);
+        }
+    }
+};
+
+/**
+ * 外部配置方法注册为静态和非静态两种方式
+ */
+for (let key in funcs) {
+    Object.defineProperty(EasyHttp, key, {
+        get: function() {
+            return function() {
+                funcs[key].apply(this, arguments);
+            }.bind(this);
+        }
+    });
+
+    Object.defineProperty(EasyHttp.prototype, key, {
+        get: function() {
+            return function() {
+                funcs[key].apply(this, arguments);
+            }.bind(this);
+        }
+    });
+}
+
 export default EasyHttp;
