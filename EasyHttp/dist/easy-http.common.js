@@ -19,30 +19,9 @@ var Logger = {
     }
 };
 
-var classCallCheck = function (instance, Constructor) {
-  if (!(instance instanceof Constructor)) {
-    throw new TypeError("Cannot call a class as a function");
-  }
-};
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var createClass = function () {
-  function defineProperties(target, props) {
-    for (var i = 0; i < props.length; i++) {
-      var descriptor = props[i];
-      descriptor.enumerable = descriptor.enumerable || false;
-      descriptor.configurable = true;
-      if ("value" in descriptor) descriptor.writable = true;
-      Object.defineProperty(target, descriptor.key, descriptor);
-    }
-  }
-
-  return function (Constructor, protoProps, staticProps) {
-    if (protoProps) defineProperties(Constructor.prototype, protoProps);
-    if (staticProps) defineProperties(Constructor, staticProps);
-    return Constructor;
-  };
-}();
-
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 var reg = /(?:\[([^{[]*))?{\s*([a-z_][a-z0-9_]*)\s*((?::[a-z_][a-z0-9_]*)*)\s*}(?:([^}\]]*)\])?/gi;
 
 var _ref = [Symbol("createSrc"), Symbol("getRequestItem"), Symbol("createRequestItem"), Symbol("createHandler"), Symbol("analysis"), Symbol("baseUrl"), Symbol("src"), Symbol("requests"), Symbol("dictateMap"), Symbol("actionMap"), Symbol("serializater"), Symbol("processors"), Symbol("logConfig")],
@@ -79,7 +58,7 @@ var EasyHttp = function () {
     function EasyHttp(_baseUrl, obj) {
         var _this = this;
 
-        classCallCheck(this, EasyHttp);
+        _classCallCheck(this, EasyHttp);
 
         this[baseUrl] = _baseUrl;
         if (obj) {
@@ -88,7 +67,7 @@ var EasyHttp = function () {
             var _loop = function _loop(key) {
                 _this[src][key] = _this[createSrc](obj[key]);
                 Object.defineProperty(_this, key, {
-                    get: function get$$1() {
+                    get: function get() {
                         var item = this[getRequestItem](key);
                         return item && item.handler;
                     }
@@ -101,7 +80,7 @@ var EasyHttp = function () {
         }
     }
 
-    createClass(EasyHttp, [{
+    _createClass(EasyHttp, [{
         key: createSrc,
         value: function value(obj) {
             var src = void 0;
@@ -167,7 +146,7 @@ var EasyHttp = function () {
             }
             var parentObj = this;
             Object.defineProperty(item, "handler", {
-                get: function get$$1() {
+                get: function get() {
                     return parentObj[createHandler](src, item);
                 }
             });
@@ -211,7 +190,7 @@ var EasyHttp = function () {
                 return url;
             };
             Object.defineProperty(handler, "getUrl", {
-                get: function get$$1() {
+                get: function get() {
                     return getUrl;
                 }
             });
@@ -220,7 +199,7 @@ var EasyHttp = function () {
                 return this;
             }.bind(handler);
             Object.defineProperty(handler, "header", {
-                get: function get$$1() {
+                get: function get() {
                     return header;
                 }
             });
@@ -233,7 +212,7 @@ var EasyHttp = function () {
                 }
             }.bind(handler);
             Object.defineProperty(handler, "c", {
-                get: function get$$1() {
+                get: function get() {
                     return defCatchHandler;
                 }
             });
@@ -377,6 +356,7 @@ var EasyHttp = function () {
             this[_logConfig2] = _logConfig;
         }
     }]);
+
     return EasyHttp;
 }();
 

@@ -1,26 +1,25 @@
 {
-  "name": "easy-http-axios",
-  "version": "1.0.0",
-  "description": "",
-  "main": "dist/easy-http-axios.common.js",
-  "scripts": {
-    "build": "node build/rollup.prod.js"
-  },
-  "devDependencies": {
-    "babel-core": "^6.26.0",
-    "babel-plugin-transform-object-rest-spread": "^6.26.0",
-    "babel-preset-es2015-rollup": "^3.0.0",
-    "rollup": "^0.57.1",
-    "rollup-plugin-babel": "^3.0.3",
-    "rollup-plugin-buble": "^0.19.2",
-    "rollup-plugin-commonjs": "^9.1.0",
-    "rollup-plugin-eslint": "^4.0.0",
-    "rollup-plugin-flow-no-whitespace": "^1.0.0",
-    "rollup-plugin-node-resolve": "^3.3.0",
-    "rollup-plugin-replace": "^2.0.0",
-    "uglify-js": "^3.3.21"
-  },
-  "dependencies": {
-    "axios": "^0.18.0"
-  }
+    "name": "easy-http-axios",
+    "version": "1.0.0",
+    "description": "easy-http框架的axios插件，用于发起请求",
+    "main": "dist/easy-http-axios.common.js",
+    "scripts": {
+        "build": "node build/rollup.prod.js"
+    },
+    "devDependencies": {
+        "babel-core": "^6.26.0",
+        "babel-plugin-transform-object-rest-spread": "^6.26.0",
+        "babel-preset-env": "^1.6.1",
+        "rollup": "^0.57.1",
+        "rollup-plugin-babel": "^3.0.3",
+        "rollup-plugin-commonjs": "^9.1.0",
+        "rollup-plugin-eslint": "^4.0.0",
+        "rollup-plugin-flow-no-whitespace": "^1.0.0",
+        "rollup-plugin-node-resolve": "^3.3.0",
+        "rollup-plugin-replace": "^2.0.0",
+        "uglify-js": "^3.3.21"
+    },
+    "dependencies": {
+        "axios": "^0.18.0"
+    }
 }
