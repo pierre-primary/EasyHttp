@@ -4,18 +4,44 @@
 */
 'use strict';
 
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
 var Logger = {
-    i: function i(key, str) {
-        console.log(key + ":", str);
+    i: function i(key) {
+        var _console;
+
+        for (var _len = arguments.length, str = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+            str[_key - 1] = arguments[_key];
+        }
+
+        (_console = console).log.apply(_console, [key + ":"].concat(_toConsumableArray(str)));
     },
-    d: function d(key, str) {
-        console.debug(key + ":", str);
+    d: function d(key) {
+        var _console2;
+
+        for (var _len2 = arguments.length, str = Array(_len2 > 1 ? _len2 - 1 : 0), _key2 = 1; _key2 < _len2; _key2++) {
+            str[_key2 - 1] = arguments[_key2];
+        }
+
+        (_console2 = console).debug.apply(_console2, [key + ":"].concat(_toConsumableArray(str)));
     },
-    w: function w(key, str) {
-        console.warn(key + ":", str);
+    w: function w(key) {
+        var _console3;
+
+        for (var _len3 = arguments.length, str = Array(_len3 > 1 ? _len3 - 1 : 0), _key3 = 1; _key3 < _len3; _key3++) {
+            str[_key3 - 1] = arguments[_key3];
+        }
+
+        (_console3 = console).warn.apply(_console3, [key + ":"].concat(_toConsumableArray(str)));
     },
-    e: function e(key, str) {
-        console.error(key + ":", str);
+    e: function e(key) {
+        var _console4;
+
+        for (var _len4 = arguments.length, str = Array(_len4 > 1 ? _len4 - 1 : 0), _key4 = 1; _key4 < _len4; _key4++) {
+            str[_key4 - 1] = arguments[_key4];
+        }
+
+        (_console4 = console).error.apply(_console4, [key + ":"].concat(_toConsumableArray(str)));
     }
 };
 
@@ -221,7 +247,7 @@ var EasyHttp = function () {
             var handler = function handler(data) {
                 var promise = new Promise(function (_resolve, _reject) {
                     function resolve(value) {
-                        Logger.i("EasyHttp-Response", value && value.data != undefined && value.data || value);
+                        Logger.i("\nEasyHttp-Response", value && value.data != undefined && value.data || value);
                         return _resolve(value);
                     }
                     function reject(reason) {
@@ -251,8 +277,7 @@ var EasyHttp = function () {
             Object.defineProperty(handler, "getUrl", {
                 get: function get() {
                     return function (data) {
-                        var qStr = parentObj[analysis](src, item.matchsMap, data);
-                        var url = parentObj[baseUrl] + qStr;
+                        var url = parentObj[analysis](src, item.matchsMap, data);
                         return url;
                     };
                 }
@@ -282,27 +307,25 @@ var EasyHttp = function () {
 
     }, {
         key: analysis,
-        value: function (_value) {
-            function value(_x, _x2, _x3) {
-                return _value.apply(this, arguments);
-            }
-
-            value.toString = function () {
-                return _value.toString();
-            };
-
-            return value;
-        }(function (src, matchsMap, data) {
+        value: function value(src, matchsMap, data) {
             var _this2 = this;
 
             var urlFormat = src.urlFormat;
-            var query = "";
+            var query = void 0;
             data || (data = {});
             matchsMap || (matchsMap = {});
+            if (matchsMap) {
+                for (var key in matchsMap) {
+                    if (!(key in data)) {
+                        var match = matchsMap[key];
+                        urlFormat = urlFormat.replace(match.match, "");
+                    }
+                }
+            }
 
-            var _loop3 = function _loop3(key) {
-                var match = matchsMap[key];
-                var value = data[key] || "";
+            var _loop3 = function _loop3(_key) {
+                var match = matchsMap[_key];
+                var value = data[_key] || "";
                 var szr = _this2[serializater] || EasyHttp[serializater] || defSerializater;
                 value = szr(value);
                 var dictate = match && match.dictate || src.dictate;
@@ -330,25 +353,25 @@ var EasyHttp = function () {
                     urlFormat = urlFormat.replace(match.match, value);
                 } else {
                     value || (value = "");
-                    query += (query ? "&" : "?") + key + "=" + value;
+                    query || (query = "");
+                    query += (query ? "&" : "") + _key + "=" + value;
                 }
             };
 
-            for (var key in data) {
-                _loop3(key);
+            for (var _key in data) {
+                _loop3(_key);
             }
-            if (matchsMap) {
-                for (var key in matchsMap) {
-                    if (!(key in data)) {
-                        var _match = matchsMap[key];
-                        urlFormat = urlFormat.replace(_match.match, value);
-                    }
-                }
+            if (urlFormat) {
+                urlFormat = src.isHold || this[isHold] || EasyHttp[isHold] ? unHold(urlFormat) : urlFormat;
+            } else {
+                urlFormat = "";
             }
-            urlFormat += query;
-            urlFormat || (urlFormat = "");
-            return src.isHold || this[isHold] || EasyHttp[isHold] ? unHold(urlFormat) : urlFormat;
-        })
+            var url = this[baseUrl] + urlFormat;
+            if (query) {
+                url += (url.indexOf("?") < 0 ? "?" : "&") + query;
+            }
+            return url;
+        }
     }], [{
         key: "logConfig",
         value: function logConfig(_logConfig) {
@@ -416,8 +439,8 @@ var funcs = {
     addProcessor: function addProcessor() {
         var _processors2;
 
-        for (var _len = arguments.length, _processors = Array(_len), _key = 0; _key < _len; _key++) {
-            _processors[_key] = arguments[_key];
+        for (var _len = arguments.length, _processors = Array(_len), _key2 = 0; _key2 < _len; _key2++) {
+            _processors[_key2] = arguments[_key2];
         }
 
         this[processors] || (this[processors] = new Array());

@@ -6,7 +6,7 @@ type Processor = ((value: string) => string);
 
 type Request =((params:{[x: string]: any},data?: any) => Promise);
 
-declare class EasyHttp {
+export declare class EasyHttp {
     constructor(baseUrl: string, options:{[x:string]: {
         a:string,
         action:string,
@@ -32,11 +32,7 @@ declare class EasyHttp {
     [x:string]:((params?:{[x: string]: any},data?: any) => Promise);
 }
 
-declare interface Plugin {
+export declare interface Plugin {
     install(host:(EasyHttp | typeof EasyHttp));
-}
-
-declare module "easy-http" {
-    export = EasyHttp;
 }
 

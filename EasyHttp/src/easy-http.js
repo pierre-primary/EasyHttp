@@ -196,7 +196,7 @@ class EasyHttp {
             let promise = new Promise(
                 function(_resolve, _reject) {
                     function resolve(value) {
-                        Logger.i("EasyHttp-Response", (value && value.data != undefined && value.data) || value);
+                        Logger.i("\nEasyHttp-Response", (value && value.data != undefined && value.data) || value);
                         return _resolve(value);
                     }
                     function reject(reason) {
@@ -231,8 +231,7 @@ class EasyHttp {
         Object.defineProperty(handler, "getUrl", {
             get: function() {
                 return function(data) {
-                    let qStr = parentObj[analysis](src, item.matchsMap, data);
-                    let url = parentObj[baseUrl] + qStr;
+                    let url = parentObj[analysis](src, item.matchsMap, data);
                     return url;
                 };
             }
@@ -261,9 +260,17 @@ class EasyHttp {
      */
     [analysis](src, matchsMap, data) {
         let urlFormat = src.urlFormat;
-        let query = "";
+        let query;
         data || (data = {});
         matchsMap || (matchsMap = {});
+        if (matchsMap) {
+            for (let key in matchsMap) {
+                if (!(key in data)) {
+                    let match = matchsMap[key];
+                    urlFormat = urlFormat.replace(match.match, "");
+                }
+            }
+        }
         for (let key in data) {
             let match = matchsMap[key];
             let value = data[key] || "";
@@ -295,20 +302,20 @@ class EasyHttp {
                 urlFormat = urlFormat.replace(match.match, value);
             } else {
                 value || (value = "");
-                query += (query ? "&" : "?") + key + "=" + value;
+                query || (query = "");
+                query += (query ? "&" : "") + key + "=" + value;
             }
         }
-        if (matchsMap) {
-            for (let key in matchsMap) {
-                if (!(key in data)) {
-                    let match = matchsMap[key];
-                    urlFormat = urlFormat.replace(match.match, value);
-                }
-            }
+        if (urlFormat) {
+            urlFormat = src.isHold || this[isHold] || EasyHttp[isHold] ? unHold(urlFormat) : urlFormat;
+        } else {
+            urlFormat = "";
         }
-        urlFormat += query;
-        urlFormat || (urlFormat = "");
-        return src.isHold || this[isHold] || EasyHttp[isHold] ? unHold(urlFormat) : urlFormat;
+        let url = this[baseUrl] + urlFormat;
+        if (query) {
+            url += (url.indexOf("?") < 0 ? "?" : "&") + query;
+        }
+        return url;
     }
 
     static logConfig(_logConfig) {

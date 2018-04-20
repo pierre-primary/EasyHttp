@@ -3,6 +3,7 @@
     "version": "1.0.0",
     "description": "网络请求辅助框架",
     "main": "dist/easy-http.common.js",
+    "typings": "./types/index.d.ts",
     "scripts": {
         "build": "node build/rollup.prod.js"
     },
