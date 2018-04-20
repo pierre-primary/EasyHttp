@@ -22,7 +22,6 @@ function post(resolve, reject, url) {
 
 export default {
     install(host) {
-        host.bindAction("", get);
         host.bindAction("get", get);
         host.bindAction("post", post);
     }
