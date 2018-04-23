@@ -11,6 +11,7 @@ function get(resolve, reject, url) {
         reject(error);
     });
 }
+
 function post(resolve, reject, url) {
     axios.post(url).then(function (response) {
         resolve(response);
@@ -21,7 +22,6 @@ function post(resolve, reject, url) {
 
 var easyHttpAxios = {
     install: function install(host) {
-        host.bindAction("", get);
         host.bindAction("get", get);
         host.bindAction("post", post);
     }

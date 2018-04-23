@@ -3,7 +3,11 @@
     "version": "1.0.0",
     "description": "网络请求辅助框架",
     "main": "dist/easy-http.common.js",
-    "typings": "./types/index.d.ts",
+    "typings": "types/index.d.ts",
+    "files": [
+        "dist/*.js",
+        "types/*.d.ts"
+    ],
     "scripts": {
         "build": "node build/rollup.prod.js"
     },
@@ -28,6 +32,7 @@
         "rollup-plugin-flow-no-whitespace": "^1.0.0",
         "rollup-plugin-node-resolve": "^3.3.0",
         "rollup-plugin-replace": "^2.0.0",
-        "uglify-js": "^3.3.21"
+        "uglify-js": "^3.3.21",
+        "@types/node": "^9.6.6"
     }
 }

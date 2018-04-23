@@ -1,6 +1,6 @@
-const EasyHttp = require("easy-http");
 const EasyHttpAxios = require("easy-http-axios");
 const Base64 = require("js-base64").Base64;
+const EasyHttp = require("easy-http");
 
 EasyHttp.use(EasyHttpAxios);
 
@@ -24,7 +24,6 @@ const Requester2 = new EasyHttp("https://miniptapi.innourl.com/Redpacket", {
 }).bindDictate("p", e => {
     return Base64.encode(encodeURI(e));
 });
-
 module.exports = {
     Requester1,
     Requester2

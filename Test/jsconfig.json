@@ -4,11 +4,8 @@
         "module": "commonjs",
         "allowSyntheticDefaultImports": true
     },
-    "exclude": [
-        "node_modules",
-        "bower_components",
-        "jspm_packages",
-        "tmp",
-        "temp"
-    ]
+    "typeAcquisition": {
+        "include": ["easy-http"]
+    },
+    "exclude": ["node_modules", "bower_components", "jspm_packages", "tmp", "temp"]
 }
