@@ -1,9 +1,9 @@
 {
-    "name": "easy-http-axios",
+    "name": "easy-http-descriptor",
     "version": "1.0.0",
-    "description": "easy-http框架的axios插件，用于发起请求",
-    "main": "dist/easy-http-axios.common.js",
-    "typings": "types/easy-http-axios.d.ts",
+    "description": "easy-http框架的修饰符",
+    "main": "dist/easy-http-descriptor.common.js",
+    "typings": "types/easy-http-descriptor.d.ts",
     "files": ["dist/*.js", "types/*.d.ts"],
     "scripts": {
         "build": "node build/rollup.prod.js"
@@ -20,7 +20,6 @@
         "uglify-js": "^3.3.21"
     },
     "dependencies": {
-        "babel-runtime": "^6.26.0",
-        "axios": "^0.18.0"
+        "babel-runtime": "^6.26.0"
     }
 }

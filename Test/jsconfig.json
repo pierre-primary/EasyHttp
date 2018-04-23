@@ -2,7 +2,8 @@
     "compilerOptions": {
         "target": "es6",
         "module": "commonjs",
-        "allowSyntheticDefaultImports": true
+        "allowSyntheticDefaultImports": true,
+        "experimentalDecorators": true
     },
     "typeAcquisition": {
         "include": ["easy-http"]

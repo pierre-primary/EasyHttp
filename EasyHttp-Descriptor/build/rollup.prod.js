@@ -10,7 +10,7 @@ const fullPath = p => path.resolve(__dirname, "../", p);
 
 const banner =
     "/*!\n" +
-    "* easy-http-axios.js v" +
+    "* easy-http-descriptor.js v" +
     version +
     "\n" +
     "* (c) 2018-" +
@@ -21,7 +21,7 @@ const banner =
 function genConfig(opts) {
     return {
         input: {
-            input: fullPath("src/easy-http-axios.js"),
+            input: fullPath("src/easy-http-descriptor.js"),
             plugins: [
                 eslint({
                     include: [fullPath("src/") + "**/*.js"] // 需要检查的部分
@@ -29,38 +29,23 @@ function genConfig(opts) {
                 babel({
                     exclude: "node_modules/**"
                 })
-            ],
-            external: ["axios"]
+            ]
         },
         output: {
             file: opts.output,
             format: opts.format,
-            banner,
-            min: opts.min,
-            name: "EasyHttpAxios",
-            globals: {
-                axios: "axios"
-            }
+            banner
         }
     };
 }
 
 const builds = [
     {
-        output: fullPath("dist/easy-http-axios.js"),
-        format: "umd"
-    },
-    {
-        output: fullPath("dist/easy-http-axios.min.js"),
-        format: "umd",
-        min: true
-    },
-    {
-        output: fullPath("dist/easy-http-axios.common.js"),
+        output: fullPath("dist/easy-http-descriptor.common.js"),
         format: "cjs"
     },
     {
-        output: fullPath("dist/easy-http-axios.esm.js"),
+        output: fullPath("dist/easy-http-descriptor.esm.js"),
         format: "es"
     }
 ].map(genConfig);

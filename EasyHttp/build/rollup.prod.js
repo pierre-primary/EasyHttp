@@ -1,9 +1,6 @@
 const fs = require("fs");
 const path = require("path");
 const babel = require("rollup-plugin-babel");
-const flow = require("rollup-plugin-flow-no-whitespace");
-const cjs = require("rollup-plugin-commonjs");
-const node = require("rollup-plugin-node-resolve");
 const eslint = require("rollup-plugin-eslint");
 const replace = require("rollup-plugin-replace");
 const build = require("./build");
@@ -26,23 +23,48 @@ function genConfig(opts) {
         input: {
             input: fullPath("src/easy-http.js"),
             plugins: [
-                flow(),
-                node(),
                 eslint({
                     include: [fullPath("src/") + "**/*.js"] // 需要检查的部分
                 }),
-                cjs(),
                 babel({
-                    exclude: "node_modules/**"
+                    exclude: "node_modules/**",
+                    runtimeHelpers: true
                 })
+            ],
+            external: [
+                "babel-runtime/core-js/object/get-own-property-descriptor",
+                "babel-runtime/core-js/promise",
+                "babel-runtime/core-js/object/define-property",
+                "babel-runtime/helpers/classCallCheck",
+                "babel-runtime/helpers/createClass",
+                "babel-runtime/core-js/json/stringify",
+                "babel-runtime/core-js/symbol",
+                "babel-runtime/helpers/toConsumableArray",
+                "babel-runtime/core-js/object/get-prototype-of",
+                "babel-runtime/helpers/possibleConstructorReturn",
+                "babel-runtime/helpers/inherits"
             ]
         },
         output: {
             file: opts.output,
             format: opts.format,
             name: "EasyHttp",
+            exports: "default",
             banner,
-            min: opts.min
+            min: opts.min,
+            globals: {
+                "babel-runtime/core-js/object/get-own-property-descriptor": "_Object$getOwnPropertyDescriptor",
+                "babel-runtime/core-js/promise": "_Promise",
+                "babel-runtime/core-js/object/define-property": "_Object$defineProperty",
+                "babel-runtime/helpers/classCallCheck": "_classCallCheck",
+                "babel-runtime/helpers/createClass": "_toConsumableArray",
+                "babel-runtime/core-js/json/stringify": "_toConsumableArray",
+                "babel-runtime/core-js/symbol": "_toConsumableArray",
+                "babel-runtime/helpers/toConsumableArray": "_toConsumableArray",
+                "babel-runtime/core-js/object/get-prototype-of": "_Object$getPrototypeOf",
+                "babel-runtime/helpers/possibleConstructorReturn": "_possibleConstructorReturn",
+                "babel-runtime/helpers/inherits": "_inherits"
+            }
         }
     };
 }

@@ -1,0 +1,17 @@
+{
+	"folders": [
+		{
+			"path": "EasyHttp"
+		},
+		{
+			"path": "EasyHttp-Axios"
+		},
+		{
+			"path": "EasyHttp-Descriptor"
+		},
+		{
+			"path": "Test"
+		}
+	],
+	"settings": {}
+}
