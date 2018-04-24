@@ -5,7 +5,7 @@
 (function (global, factory) {
     typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory(require('babel-runtime/helpers/classCallCheck'), require('babel-runtime/helpers/createClass'), require('babel-runtime/core-js/object/get-prototype-of'), require('babel-runtime/helpers/possibleConstructorReturn'), require('babel-runtime/helpers/inherits'), require('babel-runtime/core-js/json/stringify'), require('babel-runtime/helpers/toConsumableArray'), require('babel-runtime/core-js/promise'), require('babel-runtime/core-js/object/define-property'), require('babel-runtime/core-js/symbol')) :
     typeof define === 'function' && define.amd ? define(['babel-runtime/helpers/classCallCheck', 'babel-runtime/helpers/createClass', 'babel-runtime/core-js/object/get-prototype-of', 'babel-runtime/helpers/possibleConstructorReturn', 'babel-runtime/helpers/inherits', 'babel-runtime/core-js/json/stringify', 'babel-runtime/helpers/toConsumableArray', 'babel-runtime/core-js/promise', 'babel-runtime/core-js/object/define-property', 'babel-runtime/core-js/symbol'], factory) :
-    (global.EasyHttp = factory(global._classCallCheck,global._toConsumableArray,global._Object$getPrototypeOf,global._possibleConstructorReturn,global._inherits,global._toConsumableArray,global._toConsumableArray,global._Promise,global._Object$defineProperty,global._toConsumableArray));
+    (global.EasyHttp = factory(global._classCallCheck,global._createClass,global._Object$getPrototypeOf,global._possibleConstructorReturn,global._inherits,global._JSON$stringify,global._toConsumableArray,global._Promise,global._Object$defineProperty,global._Symbol));
 }(this, (function (_classCallCheck,_createClass,_Object$getPrototypeOf,_possibleConstructorReturn,_inherits,_JSON$stringify,_toConsumableArray,_Promise,_Object$defineProperty,_Symbol) { 'use strict';
 
     _classCallCheck = _classCallCheck && _classCallCheck.hasOwnProperty('default') ? _classCallCheck['default'] : _classCallCheck;
@@ -237,7 +237,7 @@
 
             if (obj) {
                 if (is(obj, Object)) {
-                    _this.action = (obj.action || obj.a || "get").toLowerCase();
+                    (obj.action || obj.a) && (_this._action = obj.action || obj.a);
                     (obj.urlFormat || obj.u) && (_this._urlFormat = obj.urlFormat || obj.u);
                     (obj.escape || obj.esc) && (_this.escape = obj.escape || obj.esc);
                     var dictate = obj.dictate || obj.d;
@@ -381,6 +381,11 @@
             get: function get() {
                 return this._urlFormatHold || this._urlFormat;
             }
+        }, {
+            key: "action",
+            get: function get() {
+                return (this._action || "get").toLowerCase();
+            }
         }]);
 
         return RequestOption;
@@ -450,7 +455,7 @@
              */
             value: function createHandler() {
                 var parentObj = this;
-                var handleCatch = false;
+                var config = void 0;
                 var handler = function handler(data) {
                     var promise = new _Promise(function (_resolve, _reject) {
                         function resolve(value) {
@@ -458,7 +463,7 @@
                             return _resolve(value);
                         }
                         function reject(reason) {
-                            if (handleCatch) {
+                            if (config && config.handleCatch) {
                                 return _reject(reason);
                             } else {
                                 var eHandler = parentObj.errorHandler || defErrorHandler;
@@ -481,30 +486,14 @@
                     }.bind(handler));
                     return promise;
                 };
-                Object.defineProperty(handler, "getUrl", {
-                    get: function get() {
-                        return function (data) {
-                            var url = parentObj.ro.analysis(data);
-                            return url;
-                        };
-                    }
-                });
-                Object.defineProperty(handler, "header", {
-                    get: function get() {
-                        return function (header) {
-                            handler.header = header;
-                            return handler;
-                        };
-                    }
-                });
-                Object.defineProperty(handler, "catch", {
-                    get: function get() {
-                        return function (_handleCatch) {
-                            handleCatch = _handleCatch;
-                            return handler;
-                        };
-                    }
-                });
+                handler.getUrl = function (data) {
+                    var url = parentObj.ro.analysis(data);
+                    return url;
+                };
+                handler.config = function (_config) {
+                    config = _config;
+                    return handler;
+                };
                 return handler;
             }
         }, {

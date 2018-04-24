@@ -39,4 +39,10 @@ function escape(value) {
     };
 }
 
-export { action, escape };
+function dictate(value) {
+    return function (target, key) {
+        setOption(target[key], "dictate", value);
+    };
+}
+
+export { action, escape, dictate };

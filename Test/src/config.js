@@ -10,9 +10,7 @@ const Requester1 = new EasyHttp()
     })
     .setBaseUrl("https://miniptapi.innourl.com/Redpacket")
     .addRequests({
-        GetUserPlayInfo: {
-            u: "/User/GetUserPlayInfo/{userId}&{brandId}"
-        }
+        GetUserPlayInfo: "/User/GetUserPlayInfo/{userId}&{brandId}",
     });
 
 const Requester2 = new EasyHttp()
@@ -21,14 +19,15 @@ const Requester2 = new EasyHttp()
     })
     .setBaseUrl("https://miniptapi.innourl.com/Redpacket")
     .addRequests({
-        GetUserPlayInfo: {
-            u: "/User/GetUserPlayInfo/{userId:p}&{brandId}"
-        },
+        GetUserPlayInfo: "/User/GetUserPlayInfo/{userId:p}&{brandId}",
         GetUserPlayInfo2: {
             u: "/User/GetUserPlayInfo/{userId}&{brandId}",
             d: ":p"
-        }
+        },
+        GetUserPlayInfo3: "/User/GetUserPlayInfo",
+        GetUserPlayInfo4: "/User/GetUserPlayInfo/{userId}&{brandId}",
     });
+
 module.exports = {
     Requester1,
     Requester2

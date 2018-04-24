@@ -43,5 +43,12 @@ function escape(value) {
     };
 }
 
+function dictate(value) {
+    return function (target, key) {
+        setOption(target[key], "dictate", value);
+    };
+}
+
 exports.action = action;
 exports.escape = escape;
+exports.dictate = dictate;

@@ -21,7 +21,7 @@ export default class Requester extends UseConfigureImpt {
      */
     createHandler() {
         let parentObj = this;
-        let handleCatch = false;
+        let config;
         let handler = function(data) {
             let promise = new Promise(
                 function(_resolve, _reject) {
@@ -30,7 +30,7 @@ export default class Requester extends UseConfigureImpt {
                         return _resolve(value);
                     }
                     function reject(reason) {
-                        if (handleCatch) {
+                        if (config && config.handleCatch) {
                             return _reject(reason);
                         } else {
                             let eHandler = parentObj.errorHandler || defErrorHandler;
@@ -56,30 +56,14 @@ export default class Requester extends UseConfigureImpt {
             );
             return promise;
         };
-        Object.defineProperty(handler, "getUrl", {
-            get: function() {
-                return function(data) {
-                    let url = parentObj.ro.analysis(data);
-                    return url;
-                };
-            }
-        });
-        Object.defineProperty(handler, "header", {
-            get: function() {
-                return function(header) {
-                    handler.header = header;
-                    return handler;
-                };
-            }
-        });
-        Object.defineProperty(handler, "catch", {
-            get: function() {
-                return function(_handleCatch) {
-                    handleCatch = _handleCatch;
-                    return handler;
-                };
-            }
-        });
+        handler.getUrl = function(data) {
+            let url = parentObj.ro.analysis(data);
+            return url;
+        };
+        handler.config = function(_config) {
+            config = _config;
+            return handler;
+        };
         return handler;
     }
 }

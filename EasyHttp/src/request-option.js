@@ -42,7 +42,7 @@ export default class RequestOption extends UseConfigureImpt {
         super(conf);
         if (obj) {
             if (is(obj, Object)) {
-                this.action = (obj.action || obj.a || "get").toLowerCase();
+                (obj.action || obj.a) && (this._action = obj.action || obj.a);
                 (obj.urlFormat || obj.u) && (this._urlFormat = obj.urlFormat || obj.u);
                 (obj.escape || obj.esc) && (this.escape = obj.escape || obj.esc);
                 let dictate = obj.dictate || obj.d;
@@ -63,6 +63,10 @@ export default class RequestOption extends UseConfigureImpt {
 
     get urlFormat() {
         return this._urlFormatHold || this._urlFormat;
+    }
+
+    get action() {
+        return (this._action || "get").toLowerCase();
     }
 
     reSetUrlFormat() {

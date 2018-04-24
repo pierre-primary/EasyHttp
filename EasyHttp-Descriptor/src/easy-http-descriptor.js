@@ -19,3 +19,9 @@ export function escape(value) {
         setOption(target[key], "escape", value);
     };
 }
+
+export function dictate(value) {
+    return function(target, key) {
+        setOption(target[key], "dictate", value);
+    };
+}

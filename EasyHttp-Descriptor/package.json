@@ -4,7 +4,10 @@
     "description": "easy-http框架的修饰符",
     "main": "dist/easy-http-descriptor.common.js",
     "typings": "types/easy-http-descriptor.d.ts",
-    "files": ["dist/*.js", "types/*.d.ts"],
+    "files": [
+        "dist/*.js",
+        "types/*.d.ts"
+    ],
     "scripts": {
         "build": "node build/rollup.prod.js"
     },

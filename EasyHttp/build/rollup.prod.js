@@ -30,19 +30,6 @@ function genConfig(opts) {
                     exclude: "node_modules/**",
                     runtimeHelpers: true
                 })
-            ],
-            external: [
-                "babel-runtime/core-js/object/get-own-property-descriptor",
-                "babel-runtime/core-js/promise",
-                "babel-runtime/core-js/object/define-property",
-                "babel-runtime/helpers/classCallCheck",
-                "babel-runtime/helpers/createClass",
-                "babel-runtime/core-js/json/stringify",
-                "babel-runtime/core-js/symbol",
-                "babel-runtime/helpers/toConsumableArray",
-                "babel-runtime/core-js/object/get-prototype-of",
-                "babel-runtime/helpers/possibleConstructorReturn",
-                "babel-runtime/helpers/inherits"
             ]
         },
         output: {
@@ -51,20 +38,7 @@ function genConfig(opts) {
             name: "EasyHttp",
             exports: "default",
             banner,
-            min: opts.min,
-            globals: {
-                "babel-runtime/core-js/object/get-own-property-descriptor": "_Object$getOwnPropertyDescriptor",
-                "babel-runtime/core-js/promise": "_Promise",
-                "babel-runtime/core-js/object/define-property": "_Object$defineProperty",
-                "babel-runtime/helpers/classCallCheck": "_classCallCheck",
-                "babel-runtime/helpers/createClass": "_toConsumableArray",
-                "babel-runtime/core-js/json/stringify": "_toConsumableArray",
-                "babel-runtime/core-js/symbol": "_toConsumableArray",
-                "babel-runtime/helpers/toConsumableArray": "_toConsumableArray",
-                "babel-runtime/core-js/object/get-prototype-of": "_Object$getPrototypeOf",
-                "babel-runtime/helpers/possibleConstructorReturn": "_possibleConstructorReturn",
-                "babel-runtime/helpers/inherits": "_inherits"
-            }
+            min: opts.min
         }
     };
 }

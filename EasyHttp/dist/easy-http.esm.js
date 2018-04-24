@@ -231,7 +231,7 @@ var RequestOption = function (_UseConfigureImpt) {
 
         if (obj) {
             if (is(obj, Object)) {
-                _this.action = (obj.action || obj.a || "get").toLowerCase();
+                (obj.action || obj.a) && (_this._action = obj.action || obj.a);
                 (obj.urlFormat || obj.u) && (_this._urlFormat = obj.urlFormat || obj.u);
                 (obj.escape || obj.esc) && (_this.escape = obj.escape || obj.esc);
                 var dictate = obj.dictate || obj.d;
@@ -375,6 +375,11 @@ var RequestOption = function (_UseConfigureImpt) {
         get: function get() {
             return this._urlFormatHold || this._urlFormat;
         }
+    }, {
+        key: "action",
+        get: function get() {
+            return (this._action || "get").toLowerCase();
+        }
     }]);
 
     return RequestOption;
@@ -444,7 +449,7 @@ var Requester = function (_UseConfigureImpt) {
          */
         value: function createHandler() {
             var parentObj = this;
-            var handleCatch = false;
+            var config = void 0;
             var handler = function handler(data) {
                 var promise = new _Promise(function (_resolve, _reject) {
                     function resolve(value) {
@@ -452,7 +457,7 @@ var Requester = function (_UseConfigureImpt) {
                         return _resolve(value);
                     }
                     function reject(reason) {
-                        if (handleCatch) {
+                        if (config && config.handleCatch) {
                             return _reject(reason);
                         } else {
                             var eHandler = parentObj.errorHandler || defErrorHandler;
@@ -475,30 +480,14 @@ var Requester = function (_UseConfigureImpt) {
                 }.bind(handler));
                 return promise;
             };
-            Object.defineProperty(handler, "getUrl", {
-                get: function get() {
-                    return function (data) {
-                        var url = parentObj.ro.analysis(data);
-                        return url;
-                    };
-                }
-            });
-            Object.defineProperty(handler, "header", {
-                get: function get() {
-                    return function (header) {
-                        handler.header = header;
-                        return handler;
-                    };
-                }
-            });
-            Object.defineProperty(handler, "catch", {
-                get: function get() {
-                    return function (_handleCatch) {
-                        handleCatch = _handleCatch;
-                        return handler;
-                    };
-                }
-            });
+            handler.getUrl = function (data) {
+                var url = parentObj.ro.analysis(data);
+                return url;
+            };
+            handler.config = function (_config) {
+                config = _config;
+                return handler;
+            };
             return handler;
         }
     }, {

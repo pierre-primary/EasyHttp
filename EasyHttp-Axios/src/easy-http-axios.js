@@ -3,10 +3,10 @@ import axios from "axios";
 function get(resolve, reject, url) {
     axios
         .get(url)
-        .then(function (response) {
+        .then(function(response) {
             resolve(response);
         })
-        .catch(function (error) {
+        .catch(function(error) {
             reject(error);
         });
 }
@@ -14,10 +14,10 @@ function get(resolve, reject, url) {
 function post(resolve, reject, url) {
     axios
         .post(url)
-        .then(function (response) {
+        .then(function(response) {
             resolve(response);
         })
-        .catch(function (error) {
+        .catch(function(error) {
             reject(error);
         });
 }
