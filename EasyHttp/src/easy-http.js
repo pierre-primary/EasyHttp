@@ -56,7 +56,8 @@ const funcs = [
     "bindDictate",
     "setSerializater",
     "setErrorHandler",
-    "addProcessor",
+    "setAction",
+    "setDictate",
     "setEscape",
     "use"
 ];

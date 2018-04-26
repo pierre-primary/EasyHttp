@@ -5,12 +5,13 @@ const EasyHttp = require("easy-http");
 EasyHttp.use(EasyHttpAxios);
 
 const Requester1 = new EasyHttp()
-    .addProcessor(e => {
+    .bindDictate("p", e => {
         return Base64.encode(encodeURI(e));
     })
+    .setDictate("p")
     .setBaseUrl("https://miniptapi.innourl.com/Redpacket")
     .addRequests({
-        GetUserPlayInfo: "/User/GetUserPlayInfo/{userId}&{brandId}",
+        GetUserPlayInfo: "/User/GetUserPlayInfo/{userId}&{brandId}"
     });
 
 const Requester2 = new EasyHttp()
@@ -25,7 +26,7 @@ const Requester2 = new EasyHttp()
             d: ":p"
         },
         GetUserPlayInfo3: "/User/GetUserPlayInfo",
-        GetUserPlayInfo4: "/User/GetUserPlayInfo/{userId}&{brandId}",
+        GetUserPlayInfo4: "/User/GetUserPlayInfo/{userId}&{brandId}"
     });
 
 module.exports = {

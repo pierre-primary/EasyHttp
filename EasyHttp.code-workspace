@@ -7,9 +7,6 @@
 			"path": "EasyHttp-Axios"
 		},
 		{
-			"path": "EasyHttp-Descriptor"
-		},
-		{
 			"path": "Test"
 		}
 	]

@@ -21,8 +21,7 @@ export default class Requester extends UseConfigureImpt {
      */
     createHandler() {
         let parentObj = this;
-        let config;
-        let handler = function(data) {
+        let handler = function(options) {
             let promise = new Promise(
                 function(_resolve, _reject) {
                     function resolve(value) {
@@ -30,16 +29,16 @@ export default class Requester extends UseConfigureImpt {
                         return _resolve(value);
                     }
                     function reject(reason) {
-                        if (config && config.handleCatch) {
+                        if (options && options.handleCatch) {
                             return _reject(reason);
                         } else {
                             let eHandler = parentObj.errorHandler || defErrorHandler;
                             return eHandler(reason);
                         }
                     }
-                    let url = this.getUrl(data);
-                    Logger.i("EasyHttp-Url", url);
+                    let url = this.getUrl(options && options.params);
                     let actionName = parentObj.ro.action;
+                    Logger.i("EasyHttp-Url", actionName + ":" + url);
                     let action = parentObj.actionMap(actionName);
                     if (!action) {
                         let msg = actionName ? "not found the action:'" + actionName + "'" : "not found default action";
@@ -59,10 +58,6 @@ export default class Requester extends UseConfigureImpt {
         handler.getUrl = function(data) {
             let url = parentObj.ro.analysis(data);
             return url;
-        };
-        handler.config = function(_config) {
-            config = _config;
-            return handler;
         };
         return handler;
     }

@@ -29,6 +29,20 @@ function is(value, type) {
     return value.constructor === type || value instanceof type;
 }
 
+function initD(value) {
+    if (value) {
+        var dictate = void 0;
+        var _dictate = value.split(":");
+        _dictate.forEach(function (e) {
+            if (e) {
+                dictate || (dictate = new Array());
+                dictate.push(e);
+            }
+        });
+        return dictate;
+    }
+}
+
 var Configure = function () {
     function Configure() {
         _classCallCheck(this, Configure);
@@ -67,6 +81,18 @@ var Configure = function () {
             }
             return this;
         }
+    }, {
+        key: "setAction",
+        value: function setAction(a) {
+            this.defA = a;
+            return this;
+        }
+    }, {
+        key: "setDictate",
+        value: function setDictate(d) {
+            this.defD = initD(d);
+            return this;
+        }
 
         /**
          *绑定序列化处理器
@@ -95,25 +121,7 @@ var Configure = function () {
             this.esc = esc;
             return this;
         }
-        /**
-         *添加参数预处理器
-         */
 
-    }, {
-        key: "addProcessor",
-        value: function addProcessor() {
-            for (var _len = arguments.length, pcs = Array(_len), _key = 0; _key < _len; _key++) {
-                pcs[_key] = arguments[_key];
-            }
-
-            if (pcs) {
-                var _pcs;
-
-                this.pcs || (this.pcs = new Array());
-                (_pcs = this.pcs).push.apply(_pcs, pcs);
-            }
-            return this;
-        }
         /**
          * 插件安装
          */
@@ -169,6 +177,22 @@ var UseConfigureImpt = function () {
             return false;
         }
     }, {
+        key: "dictate",
+        set: function set(d) {
+            this.defD = initD(d);
+        },
+        get: function get() {
+            return this.defD || this.outConf.defD || Conf.defD;
+        }
+    }, {
+        key: "action",
+        set: function set(a) {
+            this.defA = a;
+        },
+        get: function get() {
+            return (this.defA || this.outConf.defA || Conf.defA || "get").toLowerCase();
+        }
+    }, {
         key: "baseUrl",
         get: function get() {
             return this.outConf.baseUrl || Conf.baseUrl;
@@ -182,11 +206,6 @@ var UseConfigureImpt = function () {
         key: "errorHandler",
         get: function get() {
             return this.outConf.eh || Conf.eh;
-        }
-    }, {
-        key: "processors",
-        get: function get() {
-            return this.outConf.pcs || Conf.pcs;
         }
     }]);
 
@@ -231,19 +250,10 @@ var RequestOption = function (_UseConfigureImpt) {
 
         if (obj) {
             if (is(obj, Object)) {
-                (obj.action || obj.a) && (_this._action = obj.action || obj.a);
+                (obj.action || obj.a) && (_this.action = obj.action || obj.a);
                 (obj.urlFormat || obj.u) && (_this._urlFormat = obj.urlFormat || obj.u);
                 (obj.escape || obj.esc) && (_this.escape = obj.escape || obj.esc);
-                var dictate = obj.dictate || obj.d;
-                if (dictate) {
-                    var _dictate = dictate.split(":");
-                    _dictate.forEach(function (e) {
-                        if (e) {
-                            _this.dictate || (_this.dictate = new Array());
-                            _this.dictate.push(e);
-                        }
-                    });
-                }
+                _this.dictate = obj.dictate || obj.d;
             } else {
                 _this._urlFormat = obj;
             }
@@ -340,10 +350,6 @@ var RequestOption = function (_UseConfigureImpt) {
                             value = dictateHandler(value);
                         }
                     });
-                } else if (_this3.processors) {
-                    _this3.processors.forEach(function (p) {
-                        value = p(value);
-                    });
                 }
                 if (match) {
                     if (value) {
@@ -374,11 +380,6 @@ var RequestOption = function (_UseConfigureImpt) {
         key: "urlFormat",
         get: function get() {
             return this._urlFormatHold || this._urlFormat;
-        }
-    }, {
-        key: "action",
-        get: function get() {
-            return (this._action || "get").toLowerCase();
         }
     }]);
 
@@ -449,24 +450,23 @@ var Requester = function (_UseConfigureImpt) {
          */
         value: function createHandler() {
             var parentObj = this;
-            var config = void 0;
-            var handler = function handler(data) {
+            var handler = function handler(options) {
                 var promise = new _Promise(function (_resolve, _reject) {
                     function resolve(value) {
                         Logger.i("\nEasyHttp-Response", value && value.data != undefined && value.data || value);
                         return _resolve(value);
                     }
                     function reject(reason) {
-                        if (config && config.handleCatch) {
+                        if (options && options.handleCatch) {
                             return _reject(reason);
                         } else {
                             var eHandler = parentObj.errorHandler || defErrorHandler;
                             return eHandler(reason);
                         }
                     }
-                    var url = this.getUrl(data);
-                    Logger.i("EasyHttp-Url", url);
+                    var url = this.getUrl(options && options.params);
                     var actionName = parentObj.ro.action;
+                    Logger.i("EasyHttp-Url", actionName + ":" + url);
                     var action = parentObj.actionMap(actionName);
                     if (!action) {
                         var msg = actionName ? "not found the action:'" + actionName + "'" : "not found default action";
@@ -483,10 +483,6 @@ var Requester = function (_UseConfigureImpt) {
             handler.getUrl = function (data) {
                 var url = parentObj.ro.analysis(data);
                 return url;
-            };
-            handler.config = function (_config) {
-                config = _config;
-                return handler;
             };
             return handler;
         }
@@ -561,7 +557,7 @@ Object.defineProperty(EasyHttp.prototype, "addRequests", {
 /**
  * 对外配置方法注册为静态和非静态两种方式
  */
-var funcs = ["setBaseUrl", "bindAction", "bindDictate", "setSerializater", "setErrorHandler", "addProcessor", "setEscape", "use"];
+var funcs = ["setBaseUrl", "bindAction", "bindDictate", "setSerializater", "setErrorHandler", "setAction", "setDictate", "setEscape", "use"];
 
 var n = funcs.length;
 

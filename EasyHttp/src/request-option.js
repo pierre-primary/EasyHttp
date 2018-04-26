@@ -42,19 +42,10 @@ export default class RequestOption extends UseConfigureImpt {
         super(conf);
         if (obj) {
             if (is(obj, Object)) {
-                (obj.action || obj.a) && (this._action = obj.action || obj.a);
+                (obj.action || obj.a) && (this.action = obj.action || obj.a);
                 (obj.urlFormat || obj.u) && (this._urlFormat = obj.urlFormat || obj.u);
                 (obj.escape || obj.esc) && (this.escape = obj.escape || obj.esc);
-                let dictate = obj.dictate || obj.d;
-                if (dictate) {
-                    let _dictate = dictate.split(":");
-                    _dictate.forEach(e => {
-                        if (e) {
-                            this.dictate || (this.dictate = new Array());
-                            this.dictate.push(e);
-                        }
-                    });
-                }
+                this.dictate = obj.dictate || obj.d;
             } else {
                 this._urlFormat = obj;
             }
@@ -63,10 +54,6 @@ export default class RequestOption extends UseConfigureImpt {
 
     get urlFormat() {
         return this._urlFormatHold || this._urlFormat;
-    }
-
-    get action() {
-        return (this._action || "get").toLowerCase();
     }
 
     reSetUrlFormat() {
@@ -140,10 +127,6 @@ export default class RequestOption extends UseConfigureImpt {
                     if (dictateHandler) {
                         value = dictateHandler(value);
                     }
-                });
-            } else if (this.processors) {
-                this.processors.forEach(p => {
-                    value = p(value);
                 });
             }
             if (match) {
