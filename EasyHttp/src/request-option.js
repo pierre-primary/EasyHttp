@@ -30,13 +30,6 @@ function unHold(str) {
         .replace(HoldMR, "]");
 }
 
-function defSerializater(value) {
-    if (is(value, Object)) {
-        value = JSON.stringify(value);
-    }
-    return value;
-}
-
 export default class RequestOption extends UseConfigureImpt {
     constructor(conf, obj) {
         super(conf);
@@ -118,7 +111,7 @@ export default class RequestOption extends UseConfigureImpt {
         for (let key in data) {
             let match = matchsMap[key];
             let value = data[key] || "";
-            let szr = this.serializater || defSerializater;
+            let szr = this.serializater;
             value = szr(value);
             let dictate = (match && match.dictate) || this.dictate;
             if (dictate) {

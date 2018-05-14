@@ -10,26 +10,33 @@
 
     axios = axios && axios.hasOwnProperty('default') ? axios['default'] : axios;
 
-    function get(resolve, reject, url) {
-        axios.get(url).then(function (response) {
-            resolve(response);
-        }).catch(function (error) {
-            reject(error);
-        });
-    }
-
-    function post(resolve, reject, url) {
-        axios.post(url).then(function (response) {
-            resolve(response);
-        }).catch(function (error) {
-            reject(error);
-        });
-    }
+    var Handlers = {
+        get: function get(o) {
+            axios.get(o.url).then(function (response) {
+                o.resolve(response);
+            }).catch(function (error) {
+                o.reject(error);
+            });
+        },
+        post: function post(o) {
+            axios.post(o.url).then(function (response) {
+                o.resolve(response);
+            }).catch(function (error) {
+                o.reject(error);
+            });
+        }
+    };
 
     var easyHttpAxios = {
         install: function install(host) {
-            host.bindAction("get", get);
-            host.bindAction("post", post);
+            host.setHandler(function (o) {
+                var act = (o.action || "").toLowerCase();
+                if (Handlers[act]) {
+                    Handlers[act](o);
+                } else {
+                    console.warn("EasyHttpAxios:not found action '" + act + "'");
+                }
+            });
         }
     };
 

@@ -19,7 +19,7 @@ class EasyHttp {
     [getRequestItem](key) {
         this[rqers] || (this[rqers] = {});
         if (key in this[rqots] && !(key in this[rqers])) {
-            this[rqers][key] = new Requester(this[in_conf], this[rqots][key]);
+            this[rqers][key] = new Requester(this[rqots][key]);
         }
         return this[rqers] && this[rqers][key];
     }
@@ -52,7 +52,9 @@ Object.defineProperty(EasyHttp.prototype, "addRequests", {
  */
 const funcs = [
     "setBaseUrl",
-    "bindAction",
+    "setHeaders",
+    "addHeaders",
+    "setHandler",
     "bindDictate",
     "setSerializater",
     "setErrorHandler",

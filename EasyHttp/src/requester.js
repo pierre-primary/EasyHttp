@@ -1,14 +1,5 @@
-import { is } from "./utils/utils";
-import Logger from "./utils/logger";
-import { UseConfigureImpt } from "./configure";
-
-function defErrorHandler(reason) {
-    Logger.e("EasyHttp-ResponseError", (reason && reason.toString()) || reason);
-}
-
-export default class Requester extends UseConfigureImpt {
-    constructor(conf, requestOption) {
-        super(conf);
+export default class Requester {
+    constructor(requestOption) {
         this.ro = requestOption;
     }
 
@@ -20,43 +11,62 @@ export default class Requester extends UseConfigureImpt {
      * 创建请求函数
      */
     createHandler() {
-        let parentObj = this;
+        let $slef = this;
         let handler = function(options) {
             let promise = new Promise(
                 function(_resolve, _reject) {
+                    let url = this.getUrl(options && options.params);
+                    let actionName = $slef.ro.action;
                     function resolve(value) {
-                        Logger.i("\nEasyHttp-Response", (value && value.data != undefined && value.data) || value);
+                        console.log(`EasyHttp-Url: [${actionName}]${url}`);
+                        console.log(
+                            "EasyHttp-Respons: ",
+                            (value && value.data != undefined && value.data) || value,
+                            "\n"
+                        );
                         return _resolve(value);
                     }
                     function reject(reason) {
                         if (options && options.handleCatch) {
                             return _reject(reason);
+                        } else if ($slef.ro.errorHandler) {
+                            return $slef.ro.errorHandler(reason);
                         } else {
-                            let eHandler = parentObj.errorHandler || defErrorHandler;
-                            return eHandler(reason);
+                            console.error(`EasyHttp-Url: [${actionName}]${url}`);
+                            console.error("EasyHttp-ResponseError: ", (reason && reason.toString()) || reason, "\n");
                         }
                     }
-                    let url = this.getUrl(options && options.params);
-                    let actionName = parentObj.ro.action;
-                    Logger.i("EasyHttp-Url", actionName + ":" + url);
-                    let action = parentObj.actionMap(actionName);
-                    if (!action) {
-                        let msg = actionName ? "not found the action:'" + actionName + "'" : "not found default action";
-                        Logger.w("EasyHttp", msg);
-                    } else if (!is(action, Function)) {
-                        let msg = actionName
-                            ? "the action:'" + actionName + "' is not Function"
-                            : "default action is not Function";
-                        Logger.w("EasyHttp", msg);
+                    let hd = $slef.ro.handler;
+                    if (!hd) {
+                        console.warn(`EasyHttp-Url: [${actionName}]${url}`);
+                        console.warn("EasyHttp-Warn:", "not found handler", "\n");
                     } else {
-                        action(resolve, reject, url);
+                        hd({
+                            resolve,
+                            reject,
+                            url,
+                            action: actionName,
+                            datas: options.datas,
+                            handler: this.getHeaders()
+                        });
                     }
                 }.bind(handler)
             );
             return promise;
         };
+        handler.setHeaders = function(_h) {
+            headers = _h;
+            return handler;
+        };
+        handler.addHeaders = function(_h) {
+            headers = { ...this.getHeaders(), ..._h };
+            return handler;
+        };
+        handler.getHeaders = function() {
+            return handler.headers || $slef.ro.headers || {};
+        };
         handler.getUrl = function(data) {
-            let url = parentObj.ro.analysis(data);
+            let url = $slef.ro.analysis(data);
             return url;
         };
         return handler;

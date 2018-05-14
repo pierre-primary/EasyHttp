@@ -1,30 +1,38 @@
 import axios from "axios";
 
-function get(resolve, reject, url) {
-    axios
-        .get(url)
-        .then(function(response) {
-            resolve(response);
-        })
-        .catch(function(error) {
-            reject(error);
-        });
-}
+const Handlers = {
+    get(o) {
+        axios
+            .get(o.url)
+            .then(function(response) {
+                o.resolve(response);
+            })
+            .catch(function(error) {
+                o.reject(error);
+            });
+    },
 
-function post(resolve, reject, url) {
-    axios
-        .post(url)
-        .then(function(response) {
-            resolve(response);
-        })
-        .catch(function(error) {
-            reject(error);
-        });
-}
+    post(o) {
+        axios
+            .post(o.url)
+            .then(function(response) {
+                o.resolve(response);
+            })
+            .catch(function(error) {
+                o.reject(error);
+            });
+    }
+};
 
 export default {
     install(host) {
-        host.bindAction("get", get);
-        host.bindAction("post", post);
+        host.setHandler(o => {
+            let act = (o.action || "").toLowerCase();
+            if (Handlers[act]) {
+                Handlers[act](o);
+            } else {
+                console.warn(`EasyHttpAxios:not found action '${act}'`, "\n");
+            }
+        });
     }
 };

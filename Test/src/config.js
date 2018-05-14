@@ -23,7 +23,8 @@ const Requester2 = new EasyHttp()
         GetUserPlayInfo: "/User/GetUserPlayInfo/{userId:p}&{brandId}",
         GetUserPlayInfo2: {
             u: "/User/GetUserPlayInfo/{userId}&{brandId}",
-            d: ":p"
+            d: ":p",
+            a: "haha"
         },
         GetUserPlayInfo3: "/User/GetUserPlayInfo",
         GetUserPlayInfo4: "/User/GetUserPlayInfo/{userId}&{brandId}"

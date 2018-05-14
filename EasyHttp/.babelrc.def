@@ -1,11 +1,10 @@
 {
-    "plugins": ["transform-runtime", "transform-object-rest-spread"],
+    "plugins": ["transform-object-rest-spread"],
     "presets": [
         [
             "env",
             {
                 "targets": {
-                    "browsers": ["> 5%", "last 2 versions", "ie >= 8"],
                     "node": "current"
                 },
                 "modules": false

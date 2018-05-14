@@ -13,19 +13,32 @@ function initD(value) {
         return dictate;
     }
 }
+
+function defSerializater(value) {
+    if (is(value, Object)) {
+        value = JSON.stringify(value);
+    }
+    return value;
+}
+
 export default class Configure {
     setBaseUrl(baseUrl) {
         this.baseUrl = baseUrl || "";
         return this;
     }
-    /**
-     *全局绑定事件 GET,POST 等
-     */
-    bindAction(aName, a) {
-        if (aName && a) {
-            this.am || (this.am = {});
-            this.am[aName.toLowerCase()] = a;
-        }
+
+    setHeaders(h) {
+        this.h = { ...h };
+        return this;
+    }
+
+    addHeaders(h) {
+        this.h = this.h ? { ...this.h, ...h } : { ...h };
+        return this;
+    }
+
+    setHandler(hd) {
+        this.hd = hd;
         return this;
     }
 
@@ -89,6 +102,10 @@ export class UseConfigureImpt {
         this.outConf = outConfigure;
     }
 
+    get headers() {
+        return this.outConf.h || {};
+    }
+
     set escape(value) {
         value && (this.esc = value);
     }
@@ -127,15 +144,15 @@ export class UseConfigureImpt {
     }
 
     get serializater() {
-        return this.outConf.sz || Conf.sz;
+        return this.outConf.sz || Conf.sz || defSerializater;
     }
 
     get errorHandler() {
         return this.outConf.eh || Conf.eh;
     }
 
-    actionMap(aName) {
-        return (this.outConf.am && this.outConf.am[aName]) || (Conf.am && Conf.am[aName]);
+    get handler() {
+        return this.outConf.hd || Conf.hd;
     }
 
     dictateMap(dName) {

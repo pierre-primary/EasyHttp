@@ -1,36 +1,41 @@
 {
-    "name": "easy-http",
-    "version": "1.0.0",
-    "description": "网络请求辅助框架",
-    "main": "dist/easy-http.common.js",
-    "typings": "types/index.d.ts",
-    "files": ["dist/*.js", "types/*.d.ts"],
-    "scripts": {
-        "build": "node build/rollup.prod.js"
-    },
-    "repository": {
-        "type": "git",
-        "url": "git+https://github.com/Y-bao/EasyHttp.git"
-    },
-    "author": "Ybao",
-    "license": "ISC",
-    "bugs": {
-        "url": "https://github.com/Y-bao/EasyHttp/issues"
-    },
-    "homepage": "https://github.com/Y-bao/EasyHttp#readme",
-    "devDependencies": {
-        "@types/node": "^9.6.6",
-        "babel-core": "^6.26.0",
-        "babel-eslint": "^8.2.3",
-        "babel-plugin-transform-runtime": "^6.23.0",
-        "babel-preset-env": "^1.6.1",
-        "rollup": "^0.57.1",
-        "rollup-plugin-babel": "^3.0.3",
-        "rollup-plugin-eslint": "^4.0.0",
-        "rollup-plugin-replace": "^2.0.0",
-        "uglify-js": "^3.3.21"
-    },
-    "dependencies": {
-        "babel-runtime": "^6.26.0"
-    }
+  "name": "easy-http",
+  "version": "1.0.0",
+  "description": "网络请求辅助框架",
+  "main": "dist/easy-http.common.js",
+  "typings": "types/index.d.ts",
+  "files": [
+    "dist/*.js",
+    "types/*.d.ts"
+  ],
+  "scripts": {
+    "build": "node build/rollup.prod.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Y-bao/EasyHttp.git"
+  },
+  "author": "Ybao",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Y-bao/EasyHttp/issues"
+  },
+  "homepage": "https://github.com/Y-bao/EasyHttp#readme",
+  "devDependencies": {
+    "@types/node": "^9.6.6",
+    "babel-core": "^6.26.0",
+    "babel-eslint": "^8.2.3",
+    "babel-plugin-transform-object-rest-spread": "^6.26.0",
+    "babel-plugin-transform-runtime": "^6.23.0",
+    "babel-preset-env": "^1.6.1",
+    "rollup": "^0.57.1",
+    "rollup-plugin-babel": "^3.0.3",
+    "rollup-plugin-eslint": "^4.0.0",
+    "rollup-plugin-replace": "^2.0.0",
+    "uglify-es": "^3.3.9",
+    "uglify-js": "^3.3.21"
+  },
+  "dependencies": {
+    "babel-runtime": "^6.26.0"
+  }
 }

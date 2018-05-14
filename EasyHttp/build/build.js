@@ -2,7 +2,7 @@ const fs = require("fs");
 const path = require("path");
 const zlib = require("zlib");
 const rollup = require("rollup");
-const uglify = require("uglify-js");
+const uglify = require("uglify-es");
 
 function build(builds) {
     let built = 0;
