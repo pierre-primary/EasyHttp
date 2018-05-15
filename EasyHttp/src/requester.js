@@ -21,7 +21,7 @@ export default class Requester {
                         url,
                         action: actionName,
                         data: options && options.data,
-                        order: options && options.order,
+                        other: options && options.other,
                         header: this.getHeader()
                     };
                     function complete(code, data, header, error) {
