@@ -455,6 +455,7 @@ var Requester = function () {
                         url: url,
                         action: actionName,
                         data: options && options.data,
+                        order: options && options.order,
                         header: this.getHeader()
                     };
                     function complete(code, data, header, error) {
