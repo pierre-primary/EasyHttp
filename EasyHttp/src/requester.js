@@ -20,7 +20,7 @@ export default class Requester {
                     let request = {
                         url,
                         action: actionName,
-                        data: options.data,
+                        data: options && options.data,
                         header: this.getHeader()
                     };
                     function complete(code, data, header, error) {
