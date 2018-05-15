@@ -52,9 +52,11 @@ Object.defineProperty(EasyHttp.prototype, "addRequests", {
  */
 const funcs = [
     "setBaseUrl",
-    "setHeaders",
-    "addHeaders",
-    "setHandler",
+    "setHeader",
+    "addHeader",
+    "bindHandler",
+    "bindPreHandler",
+    "bindPostHandler",
     "bindDictate",
     "setSerializater",
     "setErrorHandler",

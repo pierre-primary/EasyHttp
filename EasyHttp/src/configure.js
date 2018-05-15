@@ -27,18 +27,36 @@ export default class Configure {
         return this;
     }
 
-    setHeaders(h) {
+    setHeader(h) {
         this.h = { ...h };
         return this;
     }
 
-    addHeaders(h) {
+    addHeader(h) {
         this.h = this.h ? { ...this.h, ...h } : { ...h };
         return this;
     }
 
-    setHandler(hd) {
+    bindHandler(hd) {
         this.hd = hd;
+        return this;
+    }
+
+    bindPreHandler() {
+        let args = arguments;
+        if (args && args.length > 0) {
+            this.prehd || (this.prehd = []);
+            this.prehd.push(...args);
+        }
+        return this;
+    }
+
+    bindPostHandler() {
+        let args = arguments;
+        if (args && args.length > 0) {
+            this.posthd || (this.posthd = []);
+            this.posthd.push(...args);
+        }
         return this;
     }
 
@@ -102,8 +120,8 @@ export class UseConfigureImpt {
         this.outConf = outConfigure;
     }
 
-    get headers() {
-        return this.outConf.h || {};
+    get header() {
+        return this.outConf.h || Conf.h;
     }
 
     set escape(value) {
@@ -153,6 +171,14 @@ export class UseConfigureImpt {
 
     get handler() {
         return this.outConf.hd || Conf.hd;
+    }
+
+    get preHandlers() {
+        return this.outConf.prehd || Conf.prehd;
+    }
+
+    get postHandlers() {
+        return this.outConf.posthd || Conf.posthd;
     }
 
     dictateMap(dName) {

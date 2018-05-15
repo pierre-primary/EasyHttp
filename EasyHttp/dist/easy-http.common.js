@@ -49,18 +49,36 @@ class Configure {
         return this;
     }
 
-    setHeaders(h) {
+    setHeader(h) {
         this.h = _extends({}, h);
         return this;
     }
 
-    addHeaders(h) {
+    addHeader(h) {
         this.h = this.h ? _extends({}, this.h, h) : _extends({}, h);
         return this;
     }
 
-    setHandler(hd) {
+    bindHandler(hd) {
         this.hd = hd;
+        return this;
+    }
+
+    bindPreHandler() {
+        let args = arguments;
+        if (args && args.length > 0) {
+            this.prehd || (this.prehd = []);
+            this.prehd.push(...args);
+        }
+        return this;
+    }
+
+    bindPostHandler() {
+        let args = arguments;
+        if (args && args.length > 0) {
+            this.posthd || (this.posthd = []);
+            this.posthd.push(...args);
+        }
         return this;
     }
 
@@ -124,8 +142,8 @@ class UseConfigureImpt {
         this.outConf = outConfigure;
     }
 
-    get headers() {
-        return this.outConf.h || {};
+    get header() {
+        return this.outConf.h || Conf.h;
     }
 
     set escape(value) {
@@ -175,6 +193,14 @@ class UseConfigureImpt {
 
     get handler() {
         return this.outConf.hd || Conf.hd;
+    }
+
+    get preHandlers() {
+        return this.outConf.prehd || Conf.prehd;
+    }
+
+    get postHandlers() {
+        return this.outConf.posthd || Conf.posthd;
     }
 
     dictateMap(dName) {
@@ -338,19 +364,31 @@ class Requester {
             let promise = new Promise(function (_resolve, _reject) {
                 let url = this.getUrl(options && options.params);
                 let actionName = $slef.ro.action;
-                function resolve(value) {
-                    console.log(`EasyHttp-Url: [${actionName}]${url}`);
-                    console.log("EasyHttp-Respons: ", value && value.data != undefined && value.data || value, "\n");
-                    return _resolve(value);
-                }
-                function reject(reason) {
-                    if (options && options.handleCatch) {
-                        return _reject(reason);
-                    } else if ($slef.ro.errorHandler) {
-                        return $slef.ro.errorHandler(reason);
+                let request = {
+                    url,
+                    action: actionName,
+                    data: options.data,
+                    header: this.getHeader()
+                };
+                function complete(code, data, header, error) {
+                    let response = {
+                        code,
+                        data,
+                        header,
+                        error
+                    };
+                    let pohds = $slef.ro.postHandlers;
+                    if (pohds && pohds.length > 0) {
+                        for (let i = 0, len = pohds.length; i < len; i++) {
+                            if (pohds[i](request, response, _resolve, _reject)) {
+                                return false;
+                            }
+                        }
+                    }
+                    if (response.code > 0) {
+                        return _resolve(response);
                     } else {
-                        console.error(`EasyHttp-Url: [${actionName}]${url}`);
-                        console.error("EasyHttp-ResponseError: ", reason && reason.toString() || reason, "\n");
+                        return _reject(response);
                     }
                 }
                 let hd = $slef.ro.handler;
@@ -358,28 +396,30 @@ class Requester {
                     console.warn(`EasyHttp-Url: [${actionName}]${url}`);
                     console.warn("EasyHttp-Warn:", "not found handler", "\n");
                 } else {
-                    hd({
-                        resolve,
-                        reject,
-                        url,
-                        action: actionName,
-                        datas: options.datas,
-                        handler: this.getHeaders()
-                    });
+                    let prhds = $slef.ro.preHandlers;
+                    if (prhds && prhds.length > 0) {
+                        for (let i = 0, len = prhds.length; i < len; i++) {
+                            if (prhds[i](request, complete)) {
+                                return;
+                            }
+                        }
+                    }
+                    hd(request, complete);
+                    return;
                 }
             }.bind(handler));
             return promise;
         };
-        handler.setHeaders = function (_h) {
-            headers = _h;
+        handler.setHeader = function (_h) {
+            header = _extends$1({}, _h);
             return handler;
         };
-        handler.addHeaders = function (_h) {
-            headers = _extends$1({}, this.getHeaders(), _h);
+        handler.addHeader = function (_h) {
+            header = _extends$1({}, this.getHeader(), _h);
             return handler;
         };
-        handler.getHeaders = function () {
-            return handler.headers || $slef.ro.headers || {};
+        handler.getHeader = function () {
+            return handler.header || $slef.ro.header || {};
         };
         handler.getUrl = function (data) {
             let url = $slef.ro.analysis(data);
@@ -432,7 +472,7 @@ Object.defineProperty(EasyHttp.prototype, "addRequests", {
 /**
  * 对外配置方法注册为静态和非静态两种方式
  */
-const funcs = ["setBaseUrl", "setHeaders", "addHeaders", "setHandler", "bindDictate", "setSerializater", "setErrorHandler", "setAction", "setDictate", "setEscape", "use"];
+const funcs = ["setBaseUrl", "setHeader", "addHeader", "bindHandler", "bindPreHandler", "bindPostHandler", "bindDictate", "setSerializater", "setErrorHandler", "setAction", "setDictate", "setEscape", "use"];
 
 const n = funcs.length;
 for (let i = 0; i < n; i++) {
