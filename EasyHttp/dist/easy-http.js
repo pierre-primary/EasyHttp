@@ -172,9 +172,7 @@
         }, {
             key: "use",
             value: function use(plugin) {
-                if (plugin && plugin.install && is(plugin.install, Function)) {
-                    plugin.install(this);
-                }
+                plugin.install(this);
                 return this;
             }
         }]);
