@@ -13,57 +13,64 @@ export default class Requester {
     createHandler() {
         let $slef = this;
         let handler = function(options) {
-            let promise = new Promise(
-                function(_resolve, _reject) {
-                    let url = this.getUrl(options && options.params);
-                    let actionName = $slef.ro.action;
-                    let request = {
-                        url,
-                        action: actionName,
-                        data: options && options.data,
-                        other: options && options.other,
-                        header: this.getHeader()
-                    };
-                    function complete(code, data, header, error) {
-                        let response = {
+            let promise = new Promise((resolve, reject) => {
+                let url = handler.getUrl(options && options.params);
+                let actionName = $slef.ro.action;
+                let request = {
+                    url,
+                    action: actionName,
+                    data: options && options.data,
+                    other: options && options.other,
+                    header: handler.getHeader()
+                };
+                function complete(code, data, header, msg) {
+                    resolve({
+                        request,
+                        response: {
                             code,
                             data,
                             header,
-                            error
-                        };
-                        let pohds = $slef.ro.postHandlers;
-                        if (pohds && pohds.length > 0) {
-                            for (let i = 0, len = pohds.length; i < len; i++) {
-                                if (pohds[i](request, response, _resolve, _reject)) {
-                                    return false;
-                                }
+                            msg
+                        }
+                    });
+                }
+                function error(code, data, header, msg) {
+                    reject({
+                        request,
+                        response: {
+                            code,
+                            data,
+                            header,
+                            msg
+                        }
+                    });
+                }
+                let hd = $slef.ro.handler;
+                if (hd) {
+                    let prhds = $slef.ro.preHandlers;
+                    if (prhds && prhds.length > 0) {
+                        for (let i = 0, len = prhds.length; i < len; i++) {
+                            if (prhds[i](request, complete, error)) {
+                                return;
                             }
                         }
-                        if (response.code > 0) {
-                            return _resolve(response);
-                        } else {
-                            return _reject(response);
-                        }
                     }
-                    let hd = $slef.ro.handler;
-                    if (!hd) {
-                        console.warn(`EasyHttp-Url: [${actionName}]${url}`);
-                        console.warn("EasyHttp-Warn:", "not found handler", "\n");
-                    } else {
-                        let prhds = $slef.ro.preHandlers;
-                        if (prhds && prhds.length > 0) {
-                            for (let i = 0, len = prhds.length; i < len; i++) {
-                                if (prhds[i](request, complete)) {
-                                    return;
-                                }
-                            }
-                        }
-                        hd(request, complete);
-                        return;
+                    hd(request, complete, error);
+                } else {
+                    error(0, null, null, "not found handler");
+                }
+            });
+            let pohds = $slef.ro.postHandlers;
+            if (pohds && pohds.length > 0) {
+                return Promise.resolve().then(() => {
+                    for (let i = 0, len = pohds.length; i < len; i++) {
+                        pohds[i](promise);
                     }
-                }.bind(handler)
-            );
-            return promise;
+                    return promise;
+                });
+            } else {
+                return promise;
+            }
         };
         handler.setHeader = function(_h) {
             header = { ..._h };
