@@ -63,10 +63,11 @@ export default class Requester {
             let pohds = $slef.ro.postHandlers;
             if (pohds && pohds.length > 0) {
                 return Promise.resolve().then(() => {
+                    let _p = promise;
                     for (let i = 0, len = pohds.length; i < len; i++) {
-                        pohds[i](promise);
+                        _p = pohds[i](_p);
                     }
-                    return promise;
+                    return _p;
                 });
             } else {
                 return promise;
