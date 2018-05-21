@@ -446,55 +446,65 @@ var Requester = function () {
         value: function createHandler() {
             var $slef = this;
             var handler = function handler(options) {
-                var promise = new _Promise(function (_resolve, _reject) {
-                    var url = this.getUrl(options && options.params);
+                var promise = new _Promise(function (resolve, reject) {
+                    var url = handler.getUrl(options && options.params);
                     var actionName = $slef.ro.action;
                     var request = {
                         url: url,
                         action: actionName,
                         data: options && options.data,
                         other: options && options.other,
-                        header: this.getHeader()
+                        header: handler.getHeader()
                     };
-                    function complete(code, data, header, error) {
-                        var response = {
-                            code: code,
-                            data: data,
-                            header: header,
-                            error: error
-                        };
-                        var pohds = $slef.ro.postHandlers;
-                        if (pohds && pohds.length > 0) {
-                            for (var i = 0, len = pohds.length; i < len; i++) {
-                                if (pohds[i](request, response, _resolve, _reject)) {
-                                    return false;
-                                }
+                    function complete(code, data, header, msg) {
+                        resolve({
+                            request: request,
+                            response: {
+                                code: code,
+                                data: data,
+                                header: header,
+                                msg: msg
                             }
-                        }
-                        if (response.code > 0) {
-                            return _resolve(response);
-                        } else {
-                            return _reject(response);
-                        }
+                        });
+                    }
+                    function error(code, data, header, msg) {
+                        reject({
+                            request: request,
+                            response: {
+                                code: code,
+                                data: data,
+                                header: header,
+                                msg: msg
+                            }
+                        });
                     }
                     var hd = $slef.ro.handler;
-                    if (!hd) {
-                        console.warn("EasyHttp-Url: [" + actionName + "]" + url);
-                        console.warn("EasyHttp-Warn:", "not found handler", "\n");
-                    } else {
+                    if (hd) {
                         var prhds = $slef.ro.preHandlers;
                         if (prhds && prhds.length > 0) {
                             for (var i = 0, len = prhds.length; i < len; i++) {
-                                if (prhds[i](request, complete)) {
+                                if (prhds[i](request, complete, error)) {
                                     return;
                                 }
                             }
                         }
-                        hd(request, complete);
-                        return;
+                        hd(request, complete, error);
+                    } else {
+                        error(0, null, null, "not found handler");
                     }
-                }.bind(handler));
-                return promise;
+                });
+                var pohds = $slef.ro.postHandlers;
+                if (pohds && pohds.length > 0) {
+                    return _Promise.resolve().then(function () {
+                        var _p = promise;
+                        for (var i = 0, len = pohds.length; i < len; i++) {
+                            _p = pohds[i](_p);
+                        }
+                        return _p;
+                    });
+                } else {
+                    return promise;
+                }
             };
             handler.setHeader = function (_h) {
                 header = _extends({}, _h);
