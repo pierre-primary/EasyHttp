@@ -18,6 +18,7 @@ export default class Requester {
                 let actionName = $slef.ro.action;
                 let request = {
                     url,
+                    params: options && options.params,
                     action: actionName,
                     data: options && options.data,
                     other: options && options.other,

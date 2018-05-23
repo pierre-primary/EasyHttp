@@ -451,6 +451,7 @@ var Requester = function () {
                     var actionName = $slef.ro.action;
                     var request = {
                         url: url,
+                        params: options && options.params,
                         action: actionName,
                         data: options && options.data,
                         other: options && options.other,
