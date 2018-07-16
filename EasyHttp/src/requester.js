@@ -12,7 +12,7 @@ export default class Requester {
      */
     createHandler() {
         let $slef = this;
-        let handler = function(options) {
+        let handler = function (options) {
             let promise = new Promise((resolve, reject) => {
                 let url = handler.getUrl(options && options.params);
                 let actionName = $slef.ro.action;
@@ -24,41 +24,42 @@ export default class Requester {
                     other: options && options.other,
                     header: handler.getHeader()
                 };
-                function complete(code, data, header, msg) {
-                    resolve({
-                        request,
-                        response: {
-                            code,
-                            data,
-                            header,
-                            msg
-                        }
-                    });
-                }
-                function error(code, data, header, msg) {
-                    reject({
-                        request,
-                        response: {
-                            code,
-                            data,
-                            header,
-                            msg
-                        }
-                    });
-                }
                 let hd = $slef.ro.handler;
                 if (hd) {
                     let prhds = $slef.ro.preHandlers;
                     if (prhds && prhds.length > 0) {
                         for (let i = 0, len = prhds.length; i < len; i++) {
-                            if (prhds[i](request, complete, error)) {
+                            if (prhds[i](request, resolve, reject)) {
                                 return;
                             }
                         }
                     }
-                    hd(request, complete, error);
+                    try {
+                        hd(request).then(resp => {
+                            resolve({
+                                request,
+                                response: resp
+                            });
+                        }).catch(resp => {
+                            reject({
+                                errType: 0,
+                                request,
+                                response: resp
+                            });
+                        });
+                    } catch (e) {
+                        reject({
+                            errType: -1,
+                            request,
+                            msg: e
+                        });
+                    }
                 } else {
-                    error(0, null, null, "not found handler");
+                    reject({
+                        errType: -1,
+                        request,
+                        msg: "not found handler"
+                    });
                 }
             });
             let pohds = $slef.ro.postHandlers;
@@ -74,18 +75,21 @@ export default class Requester {
                 return promise;
             }
         };
-        handler.setHeader = function(_h) {
-            header = { ..._h };
+        handler.setHeader = function (_h) {
+            header = { ..._h
+            };
             return handler;
         };
-        handler.addHeader = function(_h) {
-            header = { ...this.getHeader(), ..._h };
+        handler.addHeader = function (_h) {
+            header = { ...this.getHeader(),
+                ..._h
+            };
             return handler;
         };
-        handler.getHeader = function() {
+        handler.getHeader = function () {
             return handler.header || $slef.ro.header || {};
         };
-        handler.getUrl = function(data) {
+        handler.getUrl = function (data) {
             let url = $slef.ro.analysis(data);
             return url;
         };

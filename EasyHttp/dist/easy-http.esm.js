@@ -460,41 +460,42 @@ var Requester = function () {
                         other: options && options.other,
                         header: handler.getHeader()
                     };
-                    function complete(code, data, header, msg) {
-                        resolve({
-                            request: request,
-                            response: {
-                                code: code,
-                                data: data,
-                                header: header,
-                                msg: msg
-                            }
-                        });
-                    }
-                    function error(code, data, header, msg) {
-                        reject({
-                            request: request,
-                            response: {
-                                code: code,
-                                data: data,
-                                header: header,
-                                msg: msg
-                            }
-                        });
-                    }
                     var hd = $slef.ro.handler;
                     if (hd) {
                         var prhds = $slef.ro.preHandlers;
                         if (prhds && prhds.length > 0) {
                             for (var i = 0, len = prhds.length; i < len; i++) {
-                                if (prhds[i](request, complete, error)) {
+                                if (prhds[i](request, resolve, reject)) {
                                     return;
                                 }
                             }
                         }
-                        hd(request, complete, error);
+                        try {
+                            hd(request).then(function (resp) {
+                                resolve({
+                                    request: request,
+                                    response: resp
+                                });
+                            }).catch(function (resp) {
+                                reject({
+                                    errType: 0,
+                                    request: request,
+                                    response: resp
+                                });
+                            });
+                        } catch (e) {
+                            reject({
+                                errType: -1,
+                                request: request,
+                                msg: e
+                            });
+                        }
                     } else {
-                        error(0, null, null, "not found handler");
+                        reject({
+                            errType: -1,
+                            request: request,
+                            msg: "not found handler"
+                        });
                     }
                 });
                 var pohds = $slef.ro.postHandlers;

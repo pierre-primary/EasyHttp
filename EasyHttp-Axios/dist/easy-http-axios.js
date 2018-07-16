@@ -11,19 +11,11 @@
     axios = axios && axios.hasOwnProperty('default') ? axios['default'] : axios;
 
     var Handlers = {
-        get: function get(o, c, er) {
-            axios.get(o.url).then(function (res) {
-                c(res.statusCode, res.data, res.header, res.errMsg);
-            }).catch(function () {
-                er(0, null, null, "");
-            });
+        get: function get(o) {
+            return axios.get(o.url);
         },
-        post: function post(o, c, er) {
-            axios.post(o.url).then(function (res) {
-                c(res.statusCode, res.data, res.header, res.errMsg);
-            }).catch(function () {
-                er(0, null, null, "");
-            });
+        post: function post(o) {
+            return axios.post(o.url);
         }
     };
 
@@ -32,10 +24,9 @@
             host.bindHandler(function (o, c, er) {
                 var act = (o.action || "").toLowerCase();
                 if (Handlers[act]) {
-                    Handlers[act](o, c, er);
-                } else {
-                    console.warn("EasyHttpAxios:not found action '" + act + "'", "\n");
+                    return Handlers[act](o, c, er);
                 }
+                throw "EasyHttpAxios:not found action '" + act + "'";
             });
         }
     };
