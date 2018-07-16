@@ -10,6 +10,7 @@
 
     axios = axios && axios.hasOwnProperty('default') ? axios['default'] : axios;
 
+    axios.defaults.withCredentials = true;
     var Handlers = {
         get: function get(o) {
             return axios.get(o.url, null, {

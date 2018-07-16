@@ -8,6 +8,7 @@ function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'defau
 
 var axios = _interopDefault(require('axios'));
 
+axios.defaults.withCredentials = true;
 var Handlers = {
     get: function get(o) {
         return axios.get(o.url, null, {
