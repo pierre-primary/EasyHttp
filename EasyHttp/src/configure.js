@@ -21,6 +21,7 @@ function defSerializater(value) {
     return value;
 }
 
+//可配置类基类
 export default class Configure {
     setBaseUrl(baseUrl) {
         this.baseUrl = baseUrl || "";
@@ -113,6 +114,7 @@ export default class Configure {
 
 export const Conf = new Configure();
 
+//配置调用辅助基类
 export class UseConfigureImpt {
     constructor(outConfigure) {
         this.outConf = outConfigure;

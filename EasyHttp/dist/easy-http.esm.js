@@ -51,6 +51,8 @@ function defSerializater(value) {
     return value;
 }
 
+//可配置类基类
+
 var Configure = function () {
     function Configure() {
         _classCallCheck(this, Configure);
@@ -177,6 +179,7 @@ var Configure = function () {
 
 var Conf = new Configure();
 
+//配置调用辅助基类
 var UseConfigureImpt = function () {
     function UseConfigureImpt(outConfigure) {
         _classCallCheck(this, UseConfigureImpt);

@@ -11,30 +11,30 @@
     axios = axios && axios.hasOwnProperty('default') ? axios['default'] : axios;
 
     var Handlers = {
-        get: function get(o) {
-            axios.get(o.url).then(function (response) {
-                o.resolve(response);
-            }).catch(function (error) {
-                o.reject(error);
+        get: function get(o, c, er) {
+            axios.get(o.url).then(function (res) {
+                c(res.statusCode, res.data, res.header, res.errMsg);
+            }).catch(function () {
+                er(0, null, null, "");
             });
         },
-        post: function post(o) {
-            axios.post(o.url).then(function (response) {
-                o.resolve(response);
-            }).catch(function (error) {
-                o.reject(error);
+        post: function post(o, c, er) {
+            axios.post(o.url).then(function (res) {
+                c(res.statusCode, res.data, res.header, res.errMsg);
+            }).catch(function () {
+                er(0, null, null, "");
             });
         }
     };
 
     var easyHttpAxios = {
         install: function install(host) {
-            host.setHandler(function (o) {
+            host.bindHandler(function (o, c, er) {
                 var act = (o.action || "").toLowerCase();
                 if (Handlers[act]) {
-                    Handlers[act](o);
+                    Handlers[act](o, c, er);
                 } else {
-                    console.warn("EasyHttpAxios:not found action '" + act + "'");
+                    console.warn("EasyHttpAxios:not found action '" + act + "'", "\n");
                 }
             });
         }
