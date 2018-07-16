@@ -1,5 +1,5 @@
 /*!
-* easy-http.js v1.0.1
+* easy-http.js v1.0.0
 * (c) 2018-2018 PengYuan-Jiang
 */
 'use strict';

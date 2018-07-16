@@ -1,5 +1,5 @@
 /*!
-* easy-http-axios.js v1.0.0
+* easy-http-axios.js v1.0.2
 * (c) 2018-2018 PengYuan-Jiang
 */
 'use strict';

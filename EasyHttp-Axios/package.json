@@ -1,6 +1,6 @@
 {
-    "name": "ybao-easy-http-axios",
-    "version": "1.0.0",
+    "name": "@y-bao/easy-http-axios",
+    "version": "1.0.2",
     "description": "easy-http框架的axios插件，用于发起请求",
     "main": "dist/easy-http-axios.common.js",
     "typings": "types/easy-http-axios.d.ts",
@@ -11,11 +11,21 @@
     "scripts": {
         "build": "node build/rollup.prod.js"
     },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/Y-bao/EasyHttp.git"
+    },
+    "author": "Ybao",
+    "license": "ISC",
+    "bugs": {
+        "url": "https://github.com/Y-bao/EasyHttp/issues"
+    },
+    "homepage": "https://github.com/Y-bao/EasyHttp#readme",
     "devDependencies": {
         "@types/node": "^9.6.6",
         "babel-core": "^6.26.0",
-        "babel-preset-env": "^1.6.1",
         "babel-plugin-transform-runtime": "^6.23.0",
+        "babel-preset-env": "^1.6.1",
         "rollup": "^0.57.1",
         "rollup-plugin-babel": "^3.0.3",
         "rollup-plugin-eslint": "^4.0.0",
@@ -23,7 +33,7 @@
         "uglify-js": "^3.3.21"
     },
     "dependencies": {
-        "babel-runtime": "^6.26.0",
-        "axios": "^0.18.0"
+        "axios": "^0.18.0",
+        "babel-runtime": "^6.26.0"
     }
 }
