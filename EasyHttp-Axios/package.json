@@ -1,6 +1,6 @@
 {
     "name": "@y-bao/easy-http-axios",
-    "version": "1.0.0",
+    "version": "1.0.1-alpha1",
     "description": "easy-http框架的axios插件，用于发起请求",
     "main": "dist/easy-http-axios.common.js",
     "typings": "types/easy-http-axios.d.ts",
