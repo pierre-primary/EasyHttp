@@ -1,6 +1,6 @@
-const EasyHttpAxios = require("easy-http-axios");
+const EasyHttpAxios = require("@y-bao/easy-http-axios");
 const Base64 = require("js-base64").Base64;
-const EasyHttp = require("easy-http");
+const EasyHttp = require("@y-bao/easy-http");
 
 EasyHttp.use(EasyHttpAxios).bindDictate("p", value => {
         value = value || " ";
