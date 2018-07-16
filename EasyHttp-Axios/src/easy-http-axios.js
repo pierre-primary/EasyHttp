@@ -1,14 +1,19 @@
 import axios from "axios";
-
+axios.defaults.withCredentials = true;
 const Handlers = {
     get(o) {
         return axios
-            .get(o.url);
+            .get(o.url, null, {
+                headers: o.header
+            });
     },
 
     post(o) {
+        axios.defaults.headers["Content-Type"] = "application/x-www-form-urlencoded;charset=UTF-8";
         return axios
-            .post(o.url, o.data);
+            .post(o.url, o.data, {
+                headers: o.header
+            });
     }
 };
 

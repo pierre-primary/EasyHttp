@@ -25,7 +25,7 @@
             "args": [
                 "link",
                 "@y-bao/easy-http",
-                "@y-bao/easy-http-axios"
+                "@y-bao/easy-http-plugin-axios"
             ]
         }
     ]

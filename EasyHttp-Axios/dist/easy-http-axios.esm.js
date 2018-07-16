@@ -1,15 +1,20 @@
 /*!
-* easy-http-axios.js v1.0.0-alpha1
+* easy-http-axios.js v1.0.0-alpha2
 * (c) 2018-2018 PengYuan-Jiang
 */
 import axios from 'axios';
 
 var Handlers = {
     get: function get(o) {
-        return axios.get(o.url);
+        return axios.get(o.url, null, {
+            headers: o.header
+        });
     },
     post: function post(o) {
-        return axios.post(o.url, o.data);
+        axios.defaults.headers["Content-Type"] = "application/x-www-form-urlencoded;charset=UTF-8";
+        return axios.post(o.url, o.data, {
+            headers: o.header
+        });
     }
 };
 

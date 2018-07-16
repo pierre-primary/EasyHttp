@@ -1,4 +1,4 @@
-const EasyHttpAxios = require("@y-bao/easy-http-axios");
+const EasyHttpAxios = require("@y-bao/easy-http-plugin-axios");
 const Base64 = require("js-base64").Base64;
 const EasyHttp = require("@y-bao/easy-http");
 
@@ -53,7 +53,16 @@ const Requester2 = new EasyHttp()
         GetUserPlayInfo4: "/User/GetUserPlayInfo/{userId}&{brandId}"
     });
 
+const Requester3 = new EasyHttp()
+    .setBaseUrl("http://localhost:51442")
+    .addRequests({
+        login: {
+            u: "/Admins/Login",
+            a: "post"
+        }
+    });
 module.exports = {
     Requester1,
-    Requester2
+    Requester2,
+    Requester3
 };
