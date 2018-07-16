@@ -1,5 +1,5 @@
 /*!
-* easy-http.js v1.0.0
+* easy-http.js v1.0.1
 * (c) 2018-2018 PengYuan-Jiang
 */
 import _toConsumableArray from 'babel-runtime/helpers/toConsumableArray';

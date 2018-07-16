@@ -1,6 +1,6 @@
 {
-  "name": "easy-http",
-  "version": "1.0.0",
+  "name": "ybao-easy-http",
+  "version": "1.0.1",
   "description": "网络请求辅助框架",
   "main": "dist/easy-http.common.js",
   "typings": "types/index.d.ts",
