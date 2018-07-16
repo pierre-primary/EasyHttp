@@ -8,16 +8,16 @@ const Handlers = {
 
     post(o) {
         return axios
-            .post(o.url);
+            .post(o.url, o.data);
     }
 };
 
 export default {
     install(host) {
-        host.bindHandler((o, c, er) => {
+        host.bindHandler(o => {
             let act = (o.action || "").toLowerCase();
             if (Handlers[act]) {
-                return Handlers[act](o, c, er);
+                return Handlers[act](o);
             }
             throw `EasyHttpAxios:not found action '${act}'`;
         });
