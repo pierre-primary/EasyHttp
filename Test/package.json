@@ -12,6 +12,8 @@
         "@types/node": "^9.6.6"
     },
     "dependencies": {
+        "@y-bao/easy-http": "^1.0.0",
+        "@y-bao/easy-http-axios": "^1.0.0",
         "axios": "^0.18.0",
         "js-base64": "^2.4.3"
     }
