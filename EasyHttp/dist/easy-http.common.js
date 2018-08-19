@@ -1,5 +1,5 @@
 /*!
-* easy-http.js v1.0.0
+* easy-http.js v1.0.1
 * (c) 2018-2018 PengYuan-Jiang
 */
 'use strict';
@@ -71,12 +71,15 @@ var Configure = function () {
     }, {
         key: "setHeader",
         value: function setHeader(h) {
-            this.h = _extends({}, h);
+            this.h = h ? _extends({}, h) : null;
             return this;
         }
     }, {
         key: "addHeader",
         value: function addHeader(h) {
+            if (!h) {
+                return this;
+            }
             this.h = this.h ? _extends({}, this.h, h) : _extends({}, h);
             return this;
         }
@@ -199,7 +202,8 @@ var UseConfigureImpt = function () {
     }, {
         key: "header",
         get: function get() {
-            return this.outConf.h || Conf.h;
+            var h = this.outConf.h || Conf.h;
+            return h ? _extends({}, h) : {};
         }
     }, {
         key: "escape",
@@ -452,6 +456,7 @@ var Requester = function () {
          */
         value: function createHandler() {
             var $slef = this;
+            var header = void 0;
             var handler = function handler(options) {
                 var promise = new _Promise(function (resolve, reject) {
                     var url = handler.getUrl(options && options.params);
@@ -462,7 +467,7 @@ var Requester = function () {
                         action: actionName,
                         data: options && options.data,
                         other: options && options.other,
-                        header: handler.getHeader()
+                        header: options.header ? _extends({}, handler.getHeader(), options.header) : handler.getHeader()
                     };
                     var hd = $slef.ro.handler;
                     if (hd) {
@@ -515,16 +520,19 @@ var Requester = function () {
                     return promise;
                 }
             };
-            handler.setHeader = function (_h) {
-                header = _extends({}, _h);
+            handler.setHeader = function (h) {
+                header = h ? _extends({}, h) : null;
                 return handler;
             };
-            handler.addHeader = function (_h) {
-                header = _extends({}, this.getHeader(), _h);
+            handler.addHeader = function (h) {
+                if (!h) {
+                    return handler;
+                }
+                header = _extends({}, this.getHeader(), h);
                 return handler;
             };
             handler.getHeader = function () {
-                return handler.header || $slef.ro.header || {};
+                return header || $slef.ro.header;
             };
             handler.getUrl = function (data) {
                 var url = $slef.ro.analysis(data);

@@ -1,4 +1,6 @@
-import { is } from "./utils/utils";
+import {
+    is
+} from "./utils/utils";
 
 function initD(value) {
     if (value) {
@@ -29,12 +31,19 @@ export default class Configure {
     }
 
     setHeader(h) {
-        this.h = { ...h };
+        this.h = h ? { ...h
+        } : null;
         return this;
     }
 
     addHeader(h) {
-        this.h = this.h ? { ...this.h, ...h } : { ...h };
+        if (!h) {
+            return this;
+        }
+        this.h = this.h ? { ...this.h,
+            ...h
+        } : { ...h
+        };
         return this;
     }
 
@@ -121,7 +130,9 @@ export class UseConfigureImpt {
     }
 
     get header() {
-        return this.outConf.h || Conf.h;
+        let h = this.outConf.h || Conf.h;
+        return h ? { ...h
+        } : {};
     }
 
     set escape(value) {

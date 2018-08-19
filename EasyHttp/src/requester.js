@@ -12,6 +12,7 @@ export default class Requester {
      */
     createHandler() {
         let $slef = this;
+        let header;
         let handler = function (options) {
             let promise = new Promise((resolve, reject) => {
                 let url = handler.getUrl(options && options.params);
@@ -22,7 +23,9 @@ export default class Requester {
                     action: actionName,
                     data: options && options.data,
                     other: options && options.other,
-                    header: handler.getHeader()
+                    header: options.header ? { ...handler.getHeader(),
+                        ...options.header
+                    } : handler.getHeader()
                 };
                 let hd = $slef.ro.handler;
                 if (hd) {
@@ -75,19 +78,22 @@ export default class Requester {
                 return promise;
             }
         };
-        handler.setHeader = function (_h) {
-            header = { ..._h
-            };
+        handler.setHeader = function (h) {
+            header = h ? { ...h
+            } : null;
             return handler;
         };
-        handler.addHeader = function (_h) {
+        handler.addHeader = function (h) {
+            if (!h) {
+                return handler;
+            }
             header = { ...this.getHeader(),
-                ..._h
+                ...h
             };
             return handler;
         };
         handler.getHeader = function () {
-            return handler.header || $slef.ro.header || {};
+            return header || $slef.ro.header;
         };
         handler.getUrl = function (data) {
             let url = $slef.ro.analysis(data);
