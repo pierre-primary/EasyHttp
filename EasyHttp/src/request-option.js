@@ -110,9 +110,10 @@ export default class RequestOption extends UseConfigureImpt {
         }
         for (let key in data) {
             let match = matchsMap[key];
-            let value = data[key] || "";
+            let value = data[key];
             let szr = this.serializater;
             value = szr(value);
+            value= (value ==undefined)?"":value;
             let dictate = (match && match.dictate) || this.dictate;
             if (dictate) {
                 dictate.forEach(e => {
