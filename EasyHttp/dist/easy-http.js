@@ -3,22 +3,10 @@
 * (c) 2018-2018 PengYuan-Jiang
 */
 (function (global, factory) {
-    typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory(require('babel-runtime/helpers/toConsumableArray'), require('babel-runtime/helpers/extends'), require('babel-runtime/helpers/classCallCheck'), require('babel-runtime/helpers/createClass'), require('babel-runtime/core-js/json/stringify'), require('babel-runtime/core-js/object/get-prototype-of'), require('babel-runtime/helpers/possibleConstructorReturn'), require('babel-runtime/helpers/inherits'), require('babel-runtime/core-js/promise'), require('babel-runtime/core-js/object/define-property'), require('babel-runtime/core-js/symbol')) :
-    typeof define === 'function' && define.amd ? define(['babel-runtime/helpers/toConsumableArray', 'babel-runtime/helpers/extends', 'babel-runtime/helpers/classCallCheck', 'babel-runtime/helpers/createClass', 'babel-runtime/core-js/json/stringify', 'babel-runtime/core-js/object/get-prototype-of', 'babel-runtime/helpers/possibleConstructorReturn', 'babel-runtime/helpers/inherits', 'babel-runtime/core-js/promise', 'babel-runtime/core-js/object/define-property', 'babel-runtime/core-js/symbol'], factory) :
-    (global.EasyHttp = factory(global._toConsumableArray,global._extends,global._classCallCheck,global._createClass,global._JSON$stringify,global._Object$getPrototypeOf,global._possibleConstructorReturn,global._inherits,global._Promise,global._Object$defineProperty,global._Symbol));
-}(this, (function (_toConsumableArray,_extends,_classCallCheck,_createClass,_JSON$stringify,_Object$getPrototypeOf,_possibleConstructorReturn,_inherits,_Promise,_Object$defineProperty,_Symbol) { 'use strict';
-
-    _toConsumableArray = _toConsumableArray && _toConsumableArray.hasOwnProperty('default') ? _toConsumableArray['default'] : _toConsumableArray;
-    _extends = _extends && _extends.hasOwnProperty('default') ? _extends['default'] : _extends;
-    _classCallCheck = _classCallCheck && _classCallCheck.hasOwnProperty('default') ? _classCallCheck['default'] : _classCallCheck;
-    _createClass = _createClass && _createClass.hasOwnProperty('default') ? _createClass['default'] : _createClass;
-    _JSON$stringify = _JSON$stringify && _JSON$stringify.hasOwnProperty('default') ? _JSON$stringify['default'] : _JSON$stringify;
-    _Object$getPrototypeOf = _Object$getPrototypeOf && _Object$getPrototypeOf.hasOwnProperty('default') ? _Object$getPrototypeOf['default'] : _Object$getPrototypeOf;
-    _possibleConstructorReturn = _possibleConstructorReturn && _possibleConstructorReturn.hasOwnProperty('default') ? _possibleConstructorReturn['default'] : _possibleConstructorReturn;
-    _inherits = _inherits && _inherits.hasOwnProperty('default') ? _inherits['default'] : _inherits;
-    _Promise = _Promise && _Promise.hasOwnProperty('default') ? _Promise['default'] : _Promise;
-    _Object$defineProperty = _Object$defineProperty && _Object$defineProperty.hasOwnProperty('default') ? _Object$defineProperty['default'] : _Object$defineProperty;
-    _Symbol = _Symbol && _Symbol.hasOwnProperty('default') ? _Symbol['default'] : _Symbol;
+    typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
+    typeof define === 'function' && define.amd ? define(factory) :
+    (global.EasyHttp = factory());
+}(this, (function () { 'use strict';
 
     /**
      * 判断对象类型 （无法区分Function Is Object）
@@ -36,11 +24,13 @@
         return value.constructor === type || value instanceof type;
     }
 
+    var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
     function initD(value) {
         if (value) {
-            var dictate = void 0;
-            var _dictate = value.split(":");
-            _dictate.forEach(function (e) {
+            let dictate;
+            let _dictate = value.split(":");
+            _dictate.forEach(e => {
                 if (e) {
                     dictate || (dictate = new Array());
                     dictate.push(e);
@@ -52,236 +42,188 @@
 
     function defSerializater(value) {
         if (is(value, Object)) {
-            value = _JSON$stringify(value);
+            value = JSON.stringify(value);
         }
         return value;
     }
 
     //可配置类基类
-
-    var Configure = function () {
-        function Configure() {
-            _classCallCheck(this, Configure);
+    class Configure {
+        setBaseUrl(baseUrl) {
+            this.baseUrl = baseUrl || "";
+            return this;
         }
 
-        _createClass(Configure, [{
-            key: "setBaseUrl",
-            value: function setBaseUrl(baseUrl) {
-                this.baseUrl = baseUrl || "";
+        setHeader(h) {
+            this.h = h ? _extends({}, h) : null;
+            return this;
+        }
+
+        addHeader(h) {
+            if (!h) {
                 return this;
             }
-        }, {
-            key: "setHeader",
-            value: function setHeader(h) {
-                this.h = h ? _extends({}, h) : null;
-                return this;
+            this.h = this.h ? _extends({}, this.h, h) : _extends({}, h);
+            return this;
+        }
+
+        bindHandler(hd) {
+            this.hd = hd;
+            return this;
+        }
+
+        bindPreHandler() {
+            let args = arguments;
+            if (args && args.length > 0) {
+                this.prehd || (this.prehd = []);
+                this.prehd.push(...args);
             }
-        }, {
-            key: "addHeader",
-            value: function addHeader(h) {
-                if (!h) {
-                    return this;
-                }
-                this.h = this.h ? _extends({}, this.h, h) : _extends({}, h);
-                return this;
+            return this;
+        }
+
+        bindPostHandler() {
+            let args = arguments;
+            if (args && args.length > 0) {
+                this.posthd || (this.posthd = []);
+                this.posthd.push(...args);
             }
-        }, {
-            key: "bindHandler",
-            value: function bindHandler(hd) {
-                this.hd = hd;
-                return this;
+            return this;
+        }
+
+        /**
+         *全局绑定自定义命令
+         */
+        bindDictate(dName, d) {
+            if (dName && d) {
+                this.dm || (this.dm = {});
+                this.dm[dName.toLowerCase()] = d;
             }
-        }, {
-            key: "bindPreHandler",
-            value: function bindPreHandler() {
-                var args = arguments;
-                if (args && args.length > 0) {
-                    var _prehd;
+            return this;
+        }
 
-                    this.prehd || (this.prehd = []);
-                    (_prehd = this.prehd).push.apply(_prehd, _toConsumableArray(args));
-                }
-                return this;
-            }
-        }, {
-            key: "bindPostHandler",
-            value: function bindPostHandler() {
-                var args = arguments;
-                if (args && args.length > 0) {
-                    var _posthd;
+        setAction(a) {
+            this.defA = a;
+            return this;
+        }
 
-                    this.posthd || (this.posthd = []);
-                    (_posthd = this.posthd).push.apply(_posthd, _toConsumableArray(args));
-                }
-                return this;
-            }
+        setDictate(d) {
+            this.defD = initD(d);
+            return this;
+        }
 
-            /**
-             *全局绑定自定义命令
-             */
+        /**
+         *绑定序列化处理器
+         */
+        setSerializater(sz) {
+            this.sz = sz;
+            return this;
+        }
 
-        }, {
-            key: "bindDictate",
-            value: function bindDictate(dName, d) {
-                if (dName && d) {
-                    this.dm || (this.dm = {});
-                    this.dm[dName.toLowerCase()] = d;
-                }
-                return this;
-            }
-        }, {
-            key: "setAction",
-            value: function setAction(a) {
-                this.defA = a;
-                return this;
-            }
-        }, {
-            key: "setDictate",
-            value: function setDictate(d) {
-                this.defD = initD(d);
-                return this;
-            }
+        /**
+         *绑定全局错误处理器
+         */
+        setErrorHandler(eh) {
+            this.eh = eh;
+            return this;
+        }
 
-            /**
-             *绑定序列化处理器
-             */
+        setEscape(esc) {
+            this.esc = esc;
+            return this;
+        }
 
-        }, {
-            key: "setSerializater",
-            value: function setSerializater(sz) {
-                this.sz = sz;
-                return this;
-            }
+        /**
+         * 插件安装
+         */
+        use(plugin) {
+            plugin.install(this);
+            return this;
+        }
+    }
 
-            /**
-             *绑定全局错误处理器
-             */
-
-        }, {
-            key: "setErrorHandler",
-            value: function setErrorHandler(eh) {
-                this.eh = eh;
-                return this;
-            }
-        }, {
-            key: "setEscape",
-            value: function setEscape(esc) {
-                this.esc = esc;
-                return this;
-            }
-
-            /**
-             * 插件安装
-             */
-
-        }, {
-            key: "use",
-            value: function use(plugin) {
-                plugin.install(this);
-                return this;
-            }
-        }]);
-
-        return Configure;
-    }();
-
-
-    var Conf = new Configure();
+    const Conf = new Configure();
 
     //配置调用辅助基类
-    var UseConfigureImpt = function () {
-        function UseConfigureImpt(outConfigure) {
-            _classCallCheck(this, UseConfigureImpt);
-
+    class UseConfigureImpt {
+        constructor(outConfigure) {
             this.outConf = outConfigure;
         }
 
-        _createClass(UseConfigureImpt, [{
-            key: "dictateMap",
-            value: function dictateMap(dName) {
-                return this.outConf.dm && this.outConf.dm[dName] || Conf.dm && Conf.dm[dName];
-            }
-        }, {
-            key: "header",
-            get: function get() {
-                var h = this.outConf.h || Conf.h;
-                return h ? _extends({}, h) : {};
-            }
-        }, {
-            key: "escape",
-            set: function set(value) {
-                value && (this.esc = value);
-            },
-            get: function get() {
-                if (this.esc != undefined) {
-                    return this.esc;
-                }
-                if (this.outConf.esc != undefined) {
-                    return this.outConf.esc;
-                }
-                if (Conf.esc != undefined) {
-                    return Conf.esc;
-                }
-                return false;
-            }
-        }, {
-            key: "dictate",
-            set: function set(d) {
-                this.defD = initD(d);
-            },
-            get: function get() {
-                return this.defD || this.outConf.defD || Conf.defD;
-            }
-        }, {
-            key: "action",
-            set: function set(a) {
-                this.defA = a;
-            },
-            get: function get() {
-                return (this.defA || this.outConf.defA || Conf.defA || "get").toLowerCase();
-            }
-        }, {
-            key: "baseUrl",
-            get: function get() {
-                return this.outConf.baseUrl || Conf.baseUrl;
-            }
-        }, {
-            key: "serializater",
-            get: function get() {
-                return this.outConf.sz || Conf.sz || defSerializater;
-            }
-        }, {
-            key: "errorHandler",
-            get: function get() {
-                return this.outConf.eh || Conf.eh;
-            }
-        }, {
-            key: "handler",
-            get: function get() {
-                return this.outConf.hd || Conf.hd;
-            }
-        }, {
-            key: "preHandlers",
-            get: function get() {
-                return this.outConf.prehd || Conf.prehd;
-            }
-        }, {
-            key: "postHandlers",
-            get: function get() {
-                return this.outConf.posthd || Conf.posthd;
-            }
-        }]);
+        get header() {
+            let h = this.outConf.h || Conf.h;
+            return h ? _extends({}, h) : {};
+        }
 
-        return UseConfigureImpt;
-    }();
+        set escape(value) {
+            value && (this.esc = value);
+        }
+
+        get escape() {
+            if (this.esc != undefined) {
+                return this.esc;
+            }
+            if (this.outConf.esc != undefined) {
+                return this.outConf.esc;
+            }
+            if (Conf.esc != undefined) {
+                return Conf.esc;
+            }
+            return false;
+        }
+
+        set dictate(d) {
+            this.defD = initD(d);
+        }
+
+        get dictate() {
+            return this.defD || this.outConf.defD || Conf.defD;
+        }
+
+        set action(a) {
+            this.defA = a;
+        }
+
+        get action() {
+            return (this.defA || this.outConf.defA || Conf.defA || "get").toLowerCase();
+        }
+
+        get baseUrl() {
+            return this.outConf.baseUrl || Conf.baseUrl;
+        }
+
+        get serializater() {
+            return this.outConf.sz || Conf.sz || defSerializater;
+        }
+
+        get errorHandler() {
+            return this.outConf.eh || Conf.eh;
+        }
+
+        get handler() {
+            return this.outConf.hd || Conf.hd;
+        }
+
+        get preHandlers() {
+            return this.outConf.prehd || Conf.prehd;
+        }
+
+        get postHandlers() {
+            return this.outConf.posthd || Conf.posthd;
+        }
+
+        dictateMap(dName) {
+            return this.outConf.dm && this.outConf.dm[dName] || Conf.dm && Conf.dm[dName];
+        }
+    }
 
     //匹配规则
-    var reg = /(?:\[([^[{]*))?{\s*([a-z_][a-z0-9_]*)\s*((?::[a-z_][a-z0-9_]*)*)\s*}(?:([^}\]]*)\])?/gi;
+    const reg = /(?:\[([^[{]*))?{\s*([a-z_][a-z0-9_]*)\s*((?::[a-z_][a-z0-9_]*)*)\s*}(?:([^}\]]*)\])?/gi;
 
-    var HoldBL = "*:hold-bl:*";
-    var HoldBR = "*:hold-br:*";
-    var HoldML = "*:hold-ml:*";
-    var HoldMR = "*:hold-mr:*";
+    const HoldBL = "*:hold-bl:*";
+    const HoldBR = "*:hold-br:*";
+    const HoldML = "*:hold-ml:*";
+    const HoldMR = "*:hold-mr:*";
+
     function hold(str) {
         if (!str) {
             return str;
@@ -296,313 +238,257 @@
         return str.replace(HoldBL, "{").replace(HoldBR, "}").replace(HoldML, "[").replace(HoldMR, "]");
     }
 
-    var RequestOption = function (_UseConfigureImpt) {
-        _inherits(RequestOption, _UseConfigureImpt);
-
-        function RequestOption(conf, obj) {
-            _classCallCheck(this, RequestOption);
-
-            var _this = _possibleConstructorReturn(this, (RequestOption.__proto__ || _Object$getPrototypeOf(RequestOption)).call(this, conf));
-
+    class RequestOption extends UseConfigureImpt {
+        constructor(conf, obj) {
+            super(conf);
             if (obj) {
                 if (is(obj, Object)) {
-                    (obj.action || obj.a) && (_this.action = obj.action || obj.a);
-                    (obj.urlFormat || obj.u) && (_this._urlFormat = obj.urlFormat || obj.u);
-                    (obj.escape || obj.esc) && (_this.escape = obj.escape || obj.esc);
-                    _this.dictate = obj.dictate || obj.d;
+                    (obj.action || obj.a) && (this.action = obj.action || obj.a);
+                    (obj.urlFormat || obj.u) && (this._urlFormat = obj.urlFormat || obj.u);
+                    (obj.escape || obj.esc) && (this.escape = obj.escape || obj.esc);
+                    this.dictate = obj.dictate || obj.d;
                 } else {
-                    _this._urlFormat = obj;
+                    this._urlFormat = obj;
                 }
             }
-            return _this;
         }
 
-        _createClass(RequestOption, [{
-            key: "reSetUrlFormat",
-            value: function reSetUrlFormat() {
-                if (this.escape) {
-                    this._urlFormatHold || (this._urlFormatHold = hold(this._urlFormat));
-                } else {
-                    this._urlFormatHold && delete this._urlFormatHold;
-                }
-                this.makeMatchsMap();
+        get urlFormat() {
+            return this._urlFormatHold || this._urlFormat;
+        }
+
+        reSetUrlFormat() {
+            if (this.escape) {
+                this._urlFormatHold || (this._urlFormatHold = hold(this._urlFormat));
+            } else {
+                this._urlFormatHold && delete this._urlFormatHold;
             }
-        }, {
-            key: "makeMatchsMap",
-            value: function makeMatchsMap() {
-                var _this2 = this;
+            this.makeMatchsMap();
+        }
 
-                if (!this.matchsMap || this._matchsUrl !== this.urlFormat) {
-                    this.matchsMap = {};
-                    this._matchsUrl = this.urlFormat;
-                    var result = void 0;
-
-                    var _loop = function _loop() {
-                        var matchs = {
-                            match: result[0],
-                            prefix: result[1],
-                            key: result[2],
-                            suffix: result[4]
-                        };
-                        if (result[3]) {
-                            var _dictate = result[3].split(":");
-                            _dictate.forEach(function (e) {
-                                if (e) {
-                                    matchs.dictate || (matchs.dictate = new Array());
-                                    matchs.dictate.push(e);
-                                }
-                            });
-                        }
-                        _this2.matchsMap[matchs.key] = matchs;
+        makeMatchsMap() {
+            if (!this.matchsMap || this._matchsUrl !== this.urlFormat) {
+                this.matchsMap = {};
+                this._matchsUrl = this.urlFormat;
+                let result;
+                while ((result = reg.exec(this._matchsUrl)) != null) {
+                    let matchs = {
+                        match: result[0],
+                        prefix: result[1],
+                        key: result[2],
+                        suffix: result[4]
                     };
-
-                    while ((result = reg.exec(this._matchsUrl)) != null) {
-                        _loop();
-                    }
-                }
-                return this.matchsMap;
-            }
-        }, {
-            key: "recoverUrl",
-            value: function recoverUrl(url) {
-                if (this._urlFormatHold) {
-                    return unHold(url);
-                }
-                return url;
-            }
-            /**
-             * 参数解析
-             */
-
-        }, {
-            key: "analysis",
-            value: function analysis(data) {
-                var _this3 = this;
-
-                this.reSetUrlFormat();
-                data || (data = {});
-                var query = void 0;
-                var urlFormat = this.urlFormat;
-                var matchsMap = this.matchsMap;
-                if (matchsMap) {
-                    for (var key in matchsMap) {
-                        if (!(key in data)) {
-                            var match = matchsMap[key];
-                            urlFormat = urlFormat.replace(match.match, "");
-                        }
-                    }
-                }
-
-                var _loop2 = function _loop2(_key) {
-                    var match = matchsMap[_key];
-                    var value = data[_key] || "";
-                    var szr = _this3.serializater;
-                    value = szr(value);
-                    var dictate = match && match.dictate || _this3.dictate;
-                    if (dictate) {
-                        dictate.forEach(function (e) {
-                            var dictateHandler = _this3.dictateMap(e);
-                            if (dictateHandler) {
-                                value = dictateHandler(value);
+                    if (result[3]) {
+                        let _dictate = result[3].split(":");
+                        _dictate.forEach(e => {
+                            if (e) {
+                                matchs.dictate || (matchs.dictate = new Array());
+                                matchs.dictate.push(e);
                             }
                         });
                     }
-                    if (match) {
-                        if (value) {
-                            value = (match.prefix || "") + value + (match.suffix || "");
-                        } else {
-                            value = "";
-                        }
-                        urlFormat = urlFormat.replace(match.match, value);
-                    } else {
-                        value || (value = "");
-                        query || (query = "");
-                        query += (query ? "&" : "") + _key + "=" + value;
+                    this.matchsMap[matchs.key] = matchs;
+                }
+            }
+            return this.matchsMap;
+        }
+
+        recoverUrl(url) {
+            if (this._urlFormatHold) {
+                return unHold(url);
+            }
+            return url;
+        }
+        /**
+         * 参数解析
+         */
+        analysis(data) {
+            this.reSetUrlFormat();
+            data || (data = {});
+            let query;
+            let urlFormat = this.urlFormat;
+            let matchsMap = this.matchsMap;
+            if (matchsMap) {
+                for (let key in matchsMap) {
+                    if (!(key in data)) {
+                        let match = matchsMap[key];
+                        urlFormat = urlFormat.replace(match.match, "");
                     }
-                };
-
-                for (var _key in data) {
-                    _loop2(_key);
                 }
-
-                urlFormat = urlFormat ? this.recoverUrl(urlFormat) : "";
-                var url = this.baseUrl + urlFormat;
-                if (query) {
-                    url += (url.indexOf("?") < 0 ? "?" : "&") + query;
+            }
+            for (let key in data) {
+                let match = matchsMap[key];
+                let value = data[key];
+                let szr = this.serializater;
+                value = szr(value);
+                let dictate = match && match.dictate || this.dictate;
+                if (dictate) {
+                    dictate.forEach(e => {
+                        let dictateHandler = this.dictateMap(e);
+                        if (dictateHandler) {
+                            value = dictateHandler(value);
+                        }
+                    });
                 }
-                return url;
+                let isIv = value === undefined; //无效
+                if (match) {
+                    if (isIv) {
+                        value = "";
+                    } else {
+                        value = (match.prefix || "") + value + (match.suffix || "");
+                    }
+                    urlFormat = urlFormat.replace(match.match, value);
+                } else {
+                    isIv && (value = "");
+                    query || (query = "");
+                    query += (query ? "&" : "") + key + "=" + value;
+                }
             }
-        }, {
-            key: "urlFormat",
-            get: function get() {
-                return this._urlFormatHold || this._urlFormat;
+
+            urlFormat = urlFormat ? this.recoverUrl(urlFormat) : "";
+            let url = this.baseUrl + urlFormat;
+            if (query) {
+                url += (url.indexOf("?") < 0 ? "?" : "&") + query;
             }
-        }]);
+            return url;
+        }
+    }
 
-        return RequestOption;
-    }(UseConfigureImpt);
+    var _extends$1 = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
-    var Requester = function () {
-        function Requester(requestOption) {
-            _classCallCheck(this, Requester);
-
+    class Requester {
+        constructor(requestOption) {
             this.ro = requestOption;
         }
 
-        _createClass(Requester, [{
-            key: "createHandler",
+        get handler() {
+            return this.createHandler();
+        }
 
-
-            /**
-             * 创建请求函数
-             */
-            value: function createHandler() {
-                var $slef = this;
-                var header = void 0;
-                var handler = function handler(options) {
-                    var promise = new _Promise(function (resolve, reject) {
-                        var url = handler.getUrl(options && options.params);
-                        var actionName = $slef.ro.action;
-                        var request = {
-                            url: url,
-                            params: options && options.params,
-                            action: actionName,
-                            data: options && options.data,
-                            other: options && options.other,
-                            header: options.header ? _extends({}, handler.getHeader(), options.header) : handler.getHeader()
-                        };
-                        var hd = $slef.ro.handler;
-                        if (hd) {
-                            var prhds = $slef.ro.preHandlers;
-                            if (prhds && prhds.length > 0) {
-                                for (var i = 0, len = prhds.length; i < len; i++) {
-                                    if (prhds[i](request, resolve, reject)) {
-                                        return;
-                                    }
+        /**
+         * 创建请求函数
+         */
+        createHandler() {
+            let $slef = this;
+            let header;
+            let handler = function (options) {
+                let promise = new Promise((resolve, reject) => {
+                    let url = handler.getUrl(options && options.params);
+                    let actionName = $slef.ro.action;
+                    let request = {
+                        url,
+                        params: options && options.params,
+                        action: actionName,
+                        data: options && options.data,
+                        other: options && options.other,
+                        header: options.header ? _extends$1({}, handler.getHeader(), options.header) : handler.getHeader()
+                    };
+                    let hd = $slef.ro.handler;
+                    if (hd) {
+                        let prhds = $slef.ro.preHandlers;
+                        if (prhds && prhds.length > 0) {
+                            for (let i = 0, len = prhds.length; i < len; i++) {
+                                if (prhds[i](request, resolve, reject)) {
+                                    return;
                                 }
                             }
-                            try {
-                                hd(request).then(function (resp) {
-                                    resolve({
-                                        request: request,
-                                        response: resp
-                                    });
-                                }).catch(function (resp) {
-                                    reject({
-                                        errType: 0,
-                                        request: request,
-                                        response: resp
-                                    });
+                        }
+                        try {
+                            hd(request).then(resp => {
+                                resolve({
+                                    request,
+                                    response: resp
                                 });
-                            } catch (e) {
+                            }).catch(resp => {
                                 reject({
-                                    errType: -1,
-                                    request: request,
-                                    msg: e
+                                    errType: 0,
+                                    request,
+                                    response: resp
                                 });
-                            }
-                        } else {
+                            });
+                        } catch (e) {
                             reject({
                                 errType: -1,
-                                request: request,
-                                msg: "not found handler"
+                                request,
+                                msg: e
                             });
                         }
-                    });
-                    var pohds = $slef.ro.postHandlers;
-                    if (pohds && pohds.length > 0) {
-                        return _Promise.resolve().then(function () {
-                            var _p = promise;
-                            for (var i = 0, len = pohds.length; i < len; i++) {
-                                _p = pohds[i](_p);
-                            }
-                            return _p;
-                        });
                     } else {
-                        return promise;
+                        reject({
+                            errType: -1,
+                            request,
+                            msg: "not found handler"
+                        });
                     }
-                };
-                handler.setHeader = function (h) {
-                    header = h ? _extends({}, h) : null;
-                    return handler;
-                };
-                handler.addHeader = function (h) {
-                    if (!h) {
-                        return handler;
-                    }
-                    header = _extends({}, this.getHeader(), h);
-                    return handler;
-                };
-                handler.getHeader = function () {
-                    return header || $slef.ro.header;
-                };
-                handler.getUrl = function (data) {
-                    var url = $slef.ro.analysis(data);
-                    return url;
-                };
+                });
+                let pohds = $slef.ro.postHandlers;
+                if (pohds && pohds.length > 0) {
+                    return Promise.resolve().then(() => {
+                        let _p = promise;
+                        for (let i = 0, len = pohds.length; i < len; i++) {
+                            _p = pohds[i](_p);
+                        }
+                        return _p;
+                    });
+                } else {
+                    return promise;
+                }
+            };
+            handler.setHeader = function (h) {
+                header = h ? _extends$1({}, h) : null;
                 return handler;
-            }
-        }, {
-            key: "handler",
-            get: function get() {
-                return this.createHandler();
-            }
-        }]);
-
-        return Requester;
-    }();
+            };
+            handler.addHeader = function (h) {
+                if (!h) {
+                    return handler;
+                }
+                header = _extends$1({}, this.getHeader(), h);
+                return handler;
+            };
+            handler.getHeader = function () {
+                return header || $slef.ro.header;
+            };
+            handler.getUrl = function (data) {
+                let url = $slef.ro.analysis(data);
+                return url;
+            };
+            return handler;
+        }
+    }
 
     //私有属性名
-    var _ref = [_Symbol("requestOptions"), _Symbol("requesters"), _Symbol("configure"), _Symbol("getRequestItem")],
-        rqots = _ref[0],
-        rqers = _ref[1],
-        in_conf = _ref[2],
-        getRequestItem = _ref[3];
+    const [rqots, rqers, in_conf, getRequestItem] = [Symbol("requestOptions"), Symbol("requesters"), Symbol("configure"), Symbol("getRequestItem")];
 
-    var EasyHttp = function () {
-        function EasyHttp(baseUrl, requests) {
-            _classCallCheck(this, EasyHttp);
-
+    class EasyHttp {
+        constructor(baseUrl, requests) {
             this[in_conf] = new Configure();
             this.setBaseUrl(baseUrl).addRequests(requests);
         }
 
-        _createClass(EasyHttp, [{
-            key: getRequestItem,
-            value: function value(key) {
-                this[rqers] || (this[rqers] = {});
-                if (key in this[rqots] && !(key in this[rqers])) {
-                    this[rqers][key] = new Requester(this[rqots][key]);
-                }
-                return this[rqers] && this[rqers][key];
+        [getRequestItem](key) {
+            this[rqers] || (this[rqers] = {});
+            if (key in this[rqots] && !(key in this[rqers])) {
+                this[rqers][key] = new Requester(this[rqots][key]);
             }
-        }]);
-
-        return EasyHttp;
-    }();
+            return this[rqers] && this[rqers][key];
+        }
+    }
 
     Object.defineProperty(EasyHttp.prototype, "addRequests", {
         configurable: false,
         enumerable: false,
-        get: function get() {
+        get: function () {
             return function (requests) {
-                var _this = this;
-
                 if (requests) {
                     this[rqots] || (this[rqots] = {});
-
-                    var _loop = function _loop(key) {
-                        _this[rqots][key] = new RequestOption(_this[in_conf], requests[key]);
-                        _Object$defineProperty(_this, key, {
-                            get: function get() {
-                                var item = this[getRequestItem](key);
+                    for (let key in requests) {
+                        this[rqots][key] = new RequestOption(this[in_conf], requests[key]);
+                        Object.defineProperty(this, key, {
+                            get: function () {
+                                let item = this[getRequestItem](key);
                                 return item && item.handler;
                             }
                         });
-                    };
-
-                    for (var key in requests) {
-                        _loop(key);
                     }
                 }
                 return this;
@@ -613,39 +499,32 @@
     /**
      * 对外配置方法注册为静态和非静态两种方式
      */
-    var funcs = ["setBaseUrl", "setHeader", "addHeader", "bindHandler", "bindPreHandler", "bindPostHandler", "bindDictate", "setSerializater", "setErrorHandler", "setAction", "setDictate", "setEscape", "use"];
+    const funcs = ["setBaseUrl", "setHeader", "addHeader", "bindHandler", "bindPreHandler", "bindPostHandler", "bindDictate", "setSerializater", "setErrorHandler", "setAction", "setDictate", "setEscape", "use"];
 
-    var n = funcs.length;
-
-    var _loop2 = function _loop2(i) {
-        var key = funcs[i];
-        _Object$defineProperty(EasyHttp, key, {
+    const n = funcs.length;
+    for (let i = 0; i < n; i++) {
+        let key = funcs[i];
+        Object.defineProperty(EasyHttp, key, {
             configurable: false,
             enumerable: false,
-            get: function get() {
+            get: function () {
                 return function () {
-                    Conf[key].apply(Conf, arguments);
+                    Conf[key](...arguments);
                     return this;
                 }.bind(this);
             }
         });
 
-        _Object$defineProperty(EasyHttp.prototype, key, {
+        Object.defineProperty(EasyHttp.prototype, key, {
             configurable: false,
             enumerable: false,
-            get: function get() {
+            get: function () {
                 return function () {
-                    var _in_conf;
-
-                    (_in_conf = this[in_conf])[key].apply(_in_conf, arguments);
+                    this[in_conf][key](...arguments);
                     return this;
                 }.bind(this);
             }
         });
-    };
-
-    for (var i = 0; i < n; i++) {
-        _loop2(i);
     }
 
     return EasyHttp;

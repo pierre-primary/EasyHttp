@@ -1,5 +1,9 @@
-import { is } from "./utils/utils";
-import { UseConfigureImpt } from "./configure";
+import {
+    is
+} from "./utils/utils";
+import {
+    UseConfigureImpt
+} from "./configure";
 
 //匹配规则
 const reg = /(?:\[([^[{]*))?{\s*([a-z_][a-z0-9_]*)\s*((?::[a-z_][a-z0-9_]*)*)\s*}(?:([^}\]]*)\])?/gi;
@@ -8,6 +12,7 @@ const HoldBL = "*:hold-bl:*";
 const HoldBR = "*:hold-br:*";
 const HoldML = "*:hold-ml:*";
 const HoldMR = "*:hold-mr:*";
+
 function hold(str) {
     if (!str) {
         return str;
@@ -113,7 +118,6 @@ export default class RequestOption extends UseConfigureImpt {
             let value = data[key];
             let szr = this.serializater;
             value = szr(value);
-            value= (value ==undefined)?"":value;
             let dictate = (match && match.dictate) || this.dictate;
             if (dictate) {
                 dictate.forEach(e => {
@@ -123,15 +127,16 @@ export default class RequestOption extends UseConfigureImpt {
                     }
                 });
             }
+            let isIv = value === undefined; //无效
             if (match) {
-                if (value) {
-                    value = (match.prefix || "") + value + (match.suffix || "");
-                } else {
+                if (isIv) {
                     value = "";
+                } else {
+                    value = (match.prefix || "") + value + (match.suffix || "");
                 }
                 urlFormat = urlFormat.replace(match.match, value);
             } else {
-                value || (value = "");
+                isIv && (value = "");
                 query || (query = "");
                 query += (query ? "&" : "") + key + "=" + value;
             }
