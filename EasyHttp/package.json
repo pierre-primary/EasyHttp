@@ -1,6 +1,6 @@
 {
     "name": "@y-bao/easy-http",
-    "version": "1.0.2",
+    "version": "1.0.3",
     "description": "网络请求辅助框架",
     "main": "dist/easy-http.common.js",
     "typings": "types/easy-http.d.ts",
@@ -15,7 +15,7 @@
         "type": "git",
         "url": "git+https://github.com/Y-bao/EasyHttp.git"
     },
-    "author": "Ybao",
+    "author": "ybao",
     "license": "ISC",
     "bugs": {
         "url": "https://github.com/Y-bao/EasyHttp/issues"
