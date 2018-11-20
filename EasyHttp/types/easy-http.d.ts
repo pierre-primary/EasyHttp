@@ -1,50 +1,84 @@
-export type Serializater = (obj: any) => string;
-export type Action = (url: string, data: any) => void;
-export type DictateHandler = (value: string) => string;
-export type ErrorHandler = (obj: any) => void;
-export type Processor = (value: string) => string;
+/// <reference no-default-lib="true"/>
 
-export type EasyHttpStatic = typeof EasyHttp;
+declare type Request = {
+    url: string;
+    params: object;
+    action: string;
+    data: object;
+    other: object;
+    header: object;
+};
+declare type RequestHandler = {
+    setHeader(value: { [x: string]: string }): RequestHandler;
+    addHeader(value: { [x: string]: string }): RequestHandler;
+    getHeader(): object;
+    getUrl(): string;
+};
 
-declare class EasyHttp {
-    [x: string]: ((params?: { [x: string]: any }, data?: any) => Promise<T>);
-
+declare class EasyHttpConstructor {
     constructor(
-        baseUrl: string,
-        options: {
-            [x: string]: {
-                a?: string;
-                action?: string;
-                urlFormat?: string;
-                u?: string;
-                dictate?: string;
-                d?: string;
-                hold?: boolean;
-                h?: boolean;
-            };
+        baseUrl?: string,
+        requests?: {
+            [x: string]:
+                | string
+                | {
+                      a?: string;
+                      action?: string;
+                      urlFormat?: string;
+                      u?: string;
+                      dictate?: string;
+                      d?: string;
+                      hold?: boolean;
+                      h?: boolean;
+                  };
         }
     );
 
-    bindAction(actionName: string, action: Action): EasyHttp;
-    bindDictate(dictate: string, handler: DictateHandler): EasyHttp;
-    setSerializater(serializater: Serializater): EasyHttp;
-    setIsHold(isHold?: boolean): EasyHttp;
-    setErrorHandler(errorHandler: ErrorHandler): EasyHttp;
-    addProcessor(processors: Processor): EasyHttp;
-    use(plugin: Plugin): EasyHttp;
-    static bindAction(actionName: string, action: Action): EasyHttpStatic;
-    static bindDictate(dictate: string, handler: DictateHandler): EasyHttpStatic;
-    static setSerializater(serializater?: Serializater): EasyHttpStatic;
-    static setErrorHandler(errorHandler?: ErrorHandler): EasyHttpStatic;
-    static setIsHold(isHold?: boolean): EasyHttpStatic;
-    static addProcessor(processors: Processor): EasyHttpStatic;
-    static use(plugin: Plugin): EasyHttpStatic;
+    static setBaseUrl(baseUrl: string): typeof EasyHttpConstructor;
+    static setHeader(headers: { [x: string]: string }): typeof EasyHttpConstructor;
+    static addHeader(headers: { [x: string]: string }): typeof EasyHttpConstructor;
+    static bindHandler(handler: (request: Request) => Promise<T>): typeof EasyHttpConstructor;
+    static bindPreHandler(
+        handler: (request: Request, resolve: (value?: any) => void, reject: (reason?: any) => void) => boolean
+    ): typeof EasyHttpConstructor;
+    static bindPostHandler(handler: (value: Promise<T>) => Promise<T>): typeof EasyHttpConstructor;
+    static bindDictate(dictate: string, handler: (value: string) => string): typeof EasyHttpConstructor;
+    static setAction(actionName: string): typeof EasyHttpConstructor;
+    static setDictate(dictate: string): typeof EasyHttpConstructor;
+    static setSerializater(serializater: (obj: any) => string): typeof EasyHttpConstructor;
+    static setEscape(esc: boolean): typeof EasyHttpConstructor;
+    static use(plugin: { install(host: typeof EasyHttpConstructor) }): typeof EasyHttpConstructor;
+
+    setBaseUrl(baseUrl: string): EasyHttp;
+    setHeader(headers: { [x: string]: string }): EasyHttp;
+    addHeader(headers: { [x: string]: string }): EasyHttp;
+    bindHandler(handler: (request: Request) => Promise<T>): EasyHttp;
+    bindPreHandler(handler: (request: Request, resolve: (value?: any) => void, reject: (reason?: any) => void) => boolean): EasyHttp;
+    bindPostHandler(handler: (value: Promise<T>) => Promise<T>): EasyHttp;
+    bindDictate(dictate: string, handler: (value: string) => string): EasyHttp;
+    setAction(actionName: string): EasyHttp;
+    setDictate(dictate: string): EasyHttp;
+    setSerializater(serializater: (obj: any) => string): EasyHttp;
+    setEscape(esc: boolean): EasyHttp;
+    use(plugin: { install(host: EasyHttpConstructor) }): EasyHttp;
+
+    addRequests(requests: {
+        [x: string]:
+            | string
+            | {
+                  a?: string;
+                  action?: string;
+                  urlFormat?: string;
+                  u?: string;
+                  dictate?: string;
+                  d?: string;
+                  hold?: boolean;
+                  h?: boolean;
+              };
+    }): EasyHttp;
+    [x: string]: ((params?: { [x: string]: any }, data?: any) => Promise<T>) | RequestHandler;
 }
 
-export default EasyHttp;
-
-export interface Plugin {
-    install(host: EasyHttp | EasyHttpStatic);
+declare module "@y-bao/easy-http" {
+    export default EasyHttpConstructor;
 }
-
-declare const EasyHttp: EasyHttp;

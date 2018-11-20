@@ -1,9 +1,9 @@
 {
     "name": "@y-bao/easy-http",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "description": "网络请求辅助框架",
     "main": "dist/easy-http.common.js",
-    "typings": "types/index.d.ts",
+    "typings": "types/easy-http.d.ts",
     "files": [
         "dist/*.js",
         "types/*.d.ts"

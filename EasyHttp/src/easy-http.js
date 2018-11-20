@@ -59,7 +59,6 @@ const funcs = [
     "bindPostHandler",
     "bindDictate",
     "setSerializater",
-    "setErrorHandler",
     "setAction",
     "setDictate",
     "setEscape",

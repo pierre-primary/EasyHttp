@@ -99,14 +99,6 @@ export default class Configure {
         return this;
     }
 
-    /**
-     *绑定全局错误处理器
-     */
-    setErrorHandler(eh) {
-        this.eh = eh;
-        return this;
-    }
-
     setEscape(esc) {
         this.esc = esc;
         return this;
@@ -174,10 +166,6 @@ export class UseConfigureImpt {
 
     get serializater() {
         return this.outConf.sz || Conf.sz || defSerializater;
-    }
-
-    get errorHandler() {
-        return this.outConf.eh || Conf.eh;
     }
 
     get handler() {
