@@ -5,5 +5,5 @@
         "allowSyntheticDefaultImports": true,
         "experimentalDecorators": true
     },
-    "exclude": ["node_modules", "bower_components", "jspm_packages", "tmp", "temp"]
+    "exclude": ["node_modules", "dist", "bower_components", "jspm_packages", "tmp", "temp"]
 }

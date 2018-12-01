@@ -38,9 +38,7 @@ declare class EasyHttpConstructor {
     static setHeader(headers: { [x: string]: string }): typeof EasyHttpConstructor;
     static addHeader(headers: { [x: string]: string }): typeof EasyHttpConstructor;
     static bindHandler(handler: (request: Request) => Promise<T>): typeof EasyHttpConstructor;
-    static bindPreHandler(
-        handler: (request: Request, resolve: (value?: any) => void, reject: (reason?: any) => void) => boolean
-    ): typeof EasyHttpConstructor;
+    static bindPreHandler(handler: (request: Request, resolve: (value?: any) => void, reject: (reason?: any) => void) => boolean): typeof EasyHttpConstructor;
     static bindPostHandler(handler: (value: Promise<T>) => Promise<T>): typeof EasyHttpConstructor;
     static bindDictate(dictate: string, handler: (value: string) => string): typeof EasyHttpConstructor;
     static setAction(actionName: string): typeof EasyHttpConstructor;
@@ -79,6 +77,4 @@ declare class EasyHttpConstructor {
     [x: string]: ((params?: { [x: string]: any }, data?: any) => Promise<T>) | RequestHandler;
 }
 
-declare module "@y-bao/easy-http" {
-    export default EasyHttpConstructor;
-}
+export = EasyHttpConstructor;
