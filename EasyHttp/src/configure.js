@@ -1,106 +1,149 @@
-import {
-    is
-} from "./utils/utils";
+import { is } from "./utils/utils";
+import ODLUtils from "./odl/odl-utils";
 
-function initD(value) {
-    if (value) {
-        let dictate;
-        let _dictate = value.split(":");
-        _dictate.forEach(e => {
-            if (e) {
-                dictate || (dictate = new Array());
-                dictate.push(e);
-            }
-        });
-        return dictate;
-    }
-}
-
-function defSerializater(value) {
+const DefaultAction = "get";
+const DefaultSerializater = function(value) {
     if (is(value, Object)) {
         value = JSON.stringify(value);
     }
     return value;
-}
+};
+
+const pri = Symbol("privateScope");
 
 //可配置类基类
-export default class Configure {
+class Configure {
+    constructor() {
+        this[pri] = {};
+    }
+
+    init(options) {
+        if (!options) {
+            return;
+        }
+        this.setBaseUrl(options.baseUrl);
+        this.setAction(options.action);
+        this.setDictate(options.dictate);
+        this.setHeaders(options.headers);
+        this.setRequestHandler(options.requestHandler);
+        this.setPreInterceptor(options.preInterceptors);
+        this.setPostInterceptor(options.postInterceptors);
+        this.setSerializater(options.serializater);
+    }
+
     setBaseUrl(baseUrl) {
-        this.baseUrl = baseUrl || "";
+        this[pri].baseUrl = baseUrl || undefined;
         return this;
     }
 
-    setHeader(h) {
-        this.h = h ? { ...h
-        } : null;
+    setAction(action) {
+        this[pri].action = action;
         return this;
     }
 
-    addHeader(h) {
-        if (!h) {
+    setDictate(dictateStr) {
+        this[pri].dictates = ODLUtils.initDictate(dictateStr);
+        return this;
+    }
+
+    setHeaders(headers) {
+        if (headers) {
+            this[pri].headers = { ...headers };
+        } else {
+            this[pri].headers = undefined;
+        }
+        return this;
+    }
+
+    addHeaders(headers) {
+        if (!headers) {
             return this;
         }
-        this.h = this.h ? { ...this.h,
-            ...h
-        } : { ...h
-        };
-        return this;
-    }
-
-    bindHandler(hd) {
-        this.hd = hd;
-        return this;
-    }
-
-    bindPreHandler() {
-        let args = arguments;
-        if (args && args.length > 0) {
-            this.prehd || (this.prehd = []);
-            this.prehd.push(...args);
+        if (this[pri].headers) {
+            this[pri].headers = { ...this[pri].headers, ...headers };
+        } else {
+            this[pri].headers = { ...headers };
         }
         return this;
     }
 
-    bindPostHandler() {
-        let args = arguments;
-        if (args && args.length > 0) {
-            this.posthd || (this.posthd = []);
-            this.posthd.push(...args);
+    removeHeaders(...names) {
+        if (this[pri].headers && names && names.length > 0) {
+            names.forEach(name => {
+                name in this[pri].headers && delete this[pri].headers[name];
+            });
+        }
+    }
+
+    setRequestHandler(requestHandler) {
+        this[pri].requestHandler = requestHandler || undefined;
+        return this;
+    }
+
+    setPreInterceptor(...preInterceptors) {
+        if (preInterceptors && preInterceptors.length > 0) {
+            this[pri].preInterceptors = [...preInterceptors];
+        } else {
+            this[pri].preInterceptors = null;
+        }
+    }
+
+    addPreInterceptor(...preInterceptors) {
+        if (preInterceptors && preInterceptors.length > 0) {
+            this[pri].preInterceptors || (this[pri].preInterceptors = []);
+            this[pri].preInterceptors.push(...preInterceptors);
         }
         return this;
     }
 
-    /**
-     *全局绑定自定义命令
-     */
-    bindDictate(dName, d) {
-        if (dName && d) {
-            this.dm || (this.dm = {});
-            this.dm[dName.toLowerCase()] = d;
+    setPostInterceptor(...postInterceptors) {
+        if (postInterceptors && postInterceptors.length > 0) {
+            this[pri].postInterceptors = [...postInterceptors];
+        } else {
+            this[pri].postInterceptors = undefined;
         }
         return this;
     }
 
-    setAction(a) {
-        this.defA = a;
+    addPostInterceptor(...postInterceptors) {
+        if (postInterceptors && postInterceptors.length > 0) {
+            this[pri].postInterceptors || (this[pri].postInterceptors = []);
+            this[pri].postInterceptors.push(...postInterceptors);
+        }
         return this;
     }
 
-    setDictate(d) {
-        this.defD = initD(d);
+    setDictateHandler(dictateHandlers) {
+        if (dictateHandlers) {
+            this[pri].dictateHandlers = { ...dictateHandlers };
+        } else {
+            this[pri].dictateHandlers = undefined;
+        }
         return this;
     }
 
-    /**
-     *绑定序列化处理器
-     */
-    setSerializater(sz) {
-        this.sz = sz;
+    addDictateHandler(dictateHandlers) {
+        if (!dictateHandlers) {
+            return this;
+        }
+        if (this[pri].dictateHandlers) {
+            this[pri].dictateHandlers = { ...this[pri].dictateHandlers, ...dictateHandlers };
+        } else {
+            this[pri].dictateHandlers = { ...dictateHandlers };
+        }
         return this;
     }
 
-    setEscape(esc) {
-        this.esc = esc;
+    removeDictateHandler(...names) {
+        if (this[pri].dictateHandlers && names && names.length > 0) {
+            names.forEach(name => {
+                name in this[pri].dictateHandlers && delete this[pri].dictateHandlers[name];
+            });
+        }
+    }
+
+    setSerializater(serializater) {
+        this[pri].serializater = serializater;
         return this;
     }
 
@@ -113,74 +156,53 @@ export default class Configure {
     }
 }
 
-export const Conf = new Configure();
+const Conf = new Configure();
 
-//配置调用辅助基类
-export class UseConfigureImpt {
-    constructor(outConfigure) {
-        this.outConf = outConfigure;
-    }
+export default Conf;
 
-    get header() {
-        let h = this.outConf.h || Conf.h;
-        return h ? { ...h
-        } : {};
-    }
+export class ConfigureGetter extends Configure {
+    get configureGetter() {
+        if (!this[pri].configGetter) {
+            this[pri].configGetter = {
+                get defaultHeaders() {
+                    return this[pri].headers || Conf[pri].headers;
+                },
 
-    set escape(value) {
-        value && (this.esc = value);
-    }
+                get action() {
+                    return (this[pri].action || Conf[pri].action || DefaultAction).toLowerCase();
+                },
 
-    get escape() {
-        if (this.esc != undefined) {
-            return this.esc;
+                get dictates() {
+                    return this[pri].dictates || Conf[pri].dictates;
+                },
+
+                get baseUrl() {
+                    return this[pri].baseUrl || Conf[pri].baseUrl;
+                },
+
+                get serializater() {
+                    return this[pri].serializater || Conf[pri].serializater || DefaultSerializater;
+                },
+
+                get requestHandler() {
+                    return this[pri].requestHandler || Conf[pri].requestHandler;
+                },
+
+                get preInterceptors() {
+                    return this[pri].preInterceptors || Conf[pri].preInterceptors;
+                },
+
+                get postInterceptors() {
+                    return this[pri].postInterceptors || Conf[pri].postInterceptors;
+                },
+
+                getDictateHandler(dictateName) {
+                    return (
+                        (this[pri].dictateHandlers && this[pri].dictateHandlers[dictateName]) ||
+                        (Conf[pri].dictateHandlers && Conf[pri].dictateHandlers[dictateName])
+                    );
+                }
+            };
         }
-        if (this.outConf.esc != undefined) {
-            return this.outConf.esc;
-        }
-        if (Conf.esc != undefined) {
-            return Conf.esc;
-        }
-        return false;
-    }
-
-    set dictate(d) {
-        this.defD = initD(d);
-    }
-
-    get dictate() {
-        return this.defD || this.outConf.defD || Conf.defD;
-    }
-
-    set action(a) {
-        this.defA = a;
-    }
-
-    get action() {
-        return (this.defA || this.outConf.defA || Conf.defA || "get").toLowerCase();
-    }
-
-    get baseUrl() {
-        return this.outConf.baseUrl || Conf.baseUrl;
-    }
-
-    get serializater() {
-        return this.outConf.sz || Conf.sz || defSerializater;
-    }
-
-    get handler() {
-        return this.outConf.hd || Conf.hd;
-    }
-
-    get preHandlers() {
-        return this.outConf.prehd || Conf.prehd;
-    }
-
-    get postHandlers() {
-        return this.outConf.posthd || Conf.posthd;
-    }
-
-    dictateMap(dName) {
-        return (this.outConf.dm && this.outConf.dm[dName]) || (Conf.dm && Conf.dm[dName]);
     }
 }

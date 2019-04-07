@@ -2,88 +2,87 @@ const fs = require("fs");
 const path = require("path");
 const zlib = require("zlib");
 const rollup = require("rollup");
-const uglify = require("uglify-es");
+const terser = require("terser");
 
-function build(builds) {
-    let built = 0;
-    let total = builds.length;
-    let next = () => {
-        buildEntry(builds[built])
-            .then(() => {
-                built++;
-                if (built < total) {
-                    next();
-                }
-            })
-            .catch(log);
-    };
-    next();
-}
+function build(input, ...outputs) {
+    let p = rollup.rollup(input);
+    outputs.forEach(output => {
+        p.then(bundle => {
+            return bundle.generate(output);
+        }).then(({ output: [{ code, map }] }) => {
+            let targetPath = output.file;
+            let p1 = write(targetPath, code, true);
 
-function buildEntry({ input, output }) {
-    var isMin = output.min;
-    delete output.min;
-    return rollup
-        .rollup(input)
-        .then(bundle => bundle.generate(output))
-        .then(({ code }) => {
-            if (isMin) {
-                var rep = uglify.minify(code, {
-                    output: {
-                        preamble: output.banner,
-                        ascii_only: true
-                    }
+            if (map) {
+                p1 = p1.then(() => {
+                    let targetMapPath = targetPath + ".map";
+                    return write(targetMapPath, JSON.stringify(map));
                 });
-                if (rep.error) {
-                    logError(rep.error);
-                    return false;
-                } else {
-                    return write(output.file, rep.code, true);
-                }
-            } else {
-                return write(output.file, code);
             }
-        });
-}
 
-function write(dest, code, zip) {
-    return new Promise((resolve, reject) => {
-        function report(extra) {
-            log(
-                blue(path.relative(process.cwd(), dest)) +
-                    " " +
-                    getSize(code) +
-                    (extra || "")
-            );
-            resolve();
-        }
-
-        fs.writeFile(dest, code, err => {
-            if (err) return reject(err);
-            if (zip) {
-                zlib.gzip(code, (err, zipped) => {
-                    if (err) return reject(err);
-                    report(" (gzipped: " + getSize(zipped) + ")");
+            if (output.minFile) {
+                p1 = p1.then(() => {
+                    let banner = output.banner ? output.banner + "\n" : "";
+                    let footer = output.footer ? "\n" + output.footer : "";
+                    let targetMinPath = output.minFile;
+                    let minified = banner + minify(code).code + footer;
+                    return write(targetMinPath, minified, true);
                 });
-            } else {
-                report();
             }
         });
     });
 }
 
-function getSize(code) {
-    return (code.length / 1024).toFixed(2) + "kb";
+function minify(code) {
+    let minified = terser.minify(code, {
+        toplevel: true,
+        sourceMap: true,
+        output: {
+            ascii_only: true
+        },
+        compress: {
+            pure_funcs: ["makeMap"]
+        }
+    });
+    return minified;
 }
 
-function log(e) {
-    console.log(e);
+function write(filePath, str, showSize) {
+    return new Promise((resolve, reject) => {
+        if (!mkdirsSync(path.dirname(filePath))) {
+            reject("目录：" + filePath + " 创建失败");
+        }
+        fs.writeFile(filePath, str, err => {
+            if (err) {
+                reject(err);
+            }
+            if (showSize) {
+                zlib.gzip(str, (err, zipped) => {
+                    if (err) {
+                        reject(err);
+                    }
+                    console.log(path.relative(process.cwd(), filePath) + " " + getSize(str) + " (gzipped: " + getSize(zipped) + ")");
+                    resolve();
+                });
+            } else {
+                console.log(path.relative(process.cwd(), filePath));
+                resolve();
+            }
+        });
+    });
 }
-function logError(e) {
-    console.error(e);
+function mkdirsSync(dirname) {
+    if (fs.existsSync(dirname)) {
+        return true;
+    } else {
+        if (mkdirsSync(path.dirname(dirname))) {
+            fs.mkdirSync(dirname);
+            return true;
+        }
+    }
+}
+function getSize(str) {
+    return (str.length / 1024).toFixed(2) + "kb";
 }
 
-function blue(str) {
-    return "\x1b[1m\x1b[34m" + str + "\x1b[39m\x1b[22m";
-}
 module.exports = build;

@@ -1,8 +1,8 @@
 const fs = require("fs");
 const path = require("path");
 const babel = require("rollup-plugin-babel");
-const eslint = require("rollup-plugin-eslint");
-const replace = require("rollup-plugin-replace");
+// const eslint = require("rollup-plugin-eslint");
+// const replace = require("rollup-plugin-replace");
 const build = require("./build");
 const version = process.env.VERSION || require("../package.json").version;
 
@@ -23,9 +23,9 @@ function genConfig(opts) {
         input: {
             input: fullPath("src/easy-http.js"),
             plugins: [
-                eslint({
-                    include: [fullPath("src/") + "**/*.js"] // 需要检查的部分
-                }),
+                // eslint({
+                //     include: [fullPath("src/") + "**/*.js"] // 需要检查的部分
+                // }),
                 babel({
                     exclude: "node_modules/**",
                     runtimeHelpers: true
