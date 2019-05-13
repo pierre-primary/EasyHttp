@@ -87,8 +87,7 @@ export default class RequestOption {
     dictateHandle(val, dictates) {
         let conf = this[pri].conf;
         val = conf.serializater(val);
-        dictates || (dictates = this.dictates);
-        if (dictates) {
+        if (dictates || (dictates = this.dictates)) {
             dictates.forEach(dictateName => {
                 let dictateHandler = conf.getDictateHandler(dictateName);
                 dictateHandler && (val = dictateHandler(val));

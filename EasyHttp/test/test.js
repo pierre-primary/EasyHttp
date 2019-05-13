@@ -13,6 +13,10 @@ eh.setRequestHandler(request => {
     });
 });
 
+eh.addDictateHandler("b", e => {
+    return ++e;
+});
+
 eh.addInterceptor((request, proceed) => {
     //拦截request
     request.headers["Test"] = "Test";
@@ -24,7 +28,9 @@ eh.addInterceptor((request, proceed) => {
 });
 
 eh.addRequests({
-    Test: "[?test={test:b}]"
+    Test: "{?test={test:b}}"
 });
 
-eh.Test().then(e => {});
+eh.Test({
+    params: { test: 0 }
+}).then(e => {});

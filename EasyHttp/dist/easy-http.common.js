@@ -1,5 +1,5 @@
 /*
-* easy-http v1.0.3
+* easy-http v1.1.0
 * (c) 2018-2019 PengYuan-Jiang
 */
 'use strict';
@@ -884,7 +884,6 @@ Object.defineProperty(EasyHttp.prototype, "addRequests", {
 
       var _loop = function _loop(key) {
         var reqOpt = new RequestOption(_this2[pri$3].conf.getter, requests[key]);
-        console.log(JSON.stringify(reqOpt.odl));
         Object.defineProperty(_this2, key, {
           get: function get() {
             return this.createHandler(reqOpt);
