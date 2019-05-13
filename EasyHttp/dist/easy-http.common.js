@@ -761,11 +761,19 @@ function () {
         return requestHandler(request);
       }]);
       var chain = new Chain(interceptors);
+      var headers;
+
+      if (req.coverHeaders) {
+        headers = req.headers || EmptyObj;
+      } else {
+        headers = objectSpread({}, conf.headers || EmptyObj, req.headers || EmptyObj);
+      }
+
       return chain.proceed({
         url: req.url,
         method: req.method,
         data: req.data,
-        headers: objectSpread({}, conf.headers || EmptyObj, req.headers || EmptyObj),
+        headers: headers,
         extraData: req.extraData
       });
     }
@@ -780,22 +788,22 @@ function () {
 
       var _headers;
 
+      var _coverHeaders;
+
       var handler = function handler(req) {
-        var url, method, data, headers, extraData;
+        var url, method, data, headers, coverHeaders, extraData;
         method = reqOpt.method;
-        headers = _headers;
 
         if (req) {
           url = handler.getUrl(req.params);
           data = req.data;
-
-          if (req.headers) {
-            headers = headers ? objectSpread({}, headers, req.headers) : req.headers;
-          }
-
+          headers = req.headers || _headers;
+          coverHeaders = req.coverHeaders || _coverHeaders;
           extraData = req.extraData;
         } else {
           url = handler.getUrl();
+          headers = _headers;
+          coverHeaders = _coverHeaders;
         }
 
         return _this.request({
@@ -803,22 +811,9 @@ function () {
           method: method,
           data: data,
           headers: headers,
+          coverHeaders: coverHeaders || false,
           extraData: extraData
         });
-      };
-
-      handler.setHeaders = function (h) {
-        _headers = h;
-        return handler;
-      };
-
-      handler.addHeaders = function (h) {
-        if (!h) {
-          return handler;
-        }
-
-        _headers = objectSpread({}, _headers || EmptyObj, h);
-        return handler;
       };
 
       handler.getUrl = function (data) {

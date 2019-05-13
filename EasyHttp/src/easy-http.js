@@ -28,11 +28,18 @@ class EasyHttp {
 
         let chain = new Chain(interceptors);
 
+        let headers;
+        if (req.coverHeaders) {
+            headers = req.headers || EmptyObj;
+        } else {
+            headers = { ...(conf.headers || EmptyObj), ...(req.headers || EmptyObj) };
+        }
+
         return chain.proceed({
             url: req.url,
             method: req.method,
             data: req.data,
-            headers: { ...(conf.headers || EmptyObj), ...(req.headers || EmptyObj) },
+            headers: headers,
             extraData: req.extraData
         });
     }
@@ -41,38 +48,29 @@ class EasyHttp {
      */
     createHandler(reqOpt) {
         let _headers;
+        let _coverHeaders;
         let handler = req => {
-            let url, method, data, headers, extraData;
+            let url, method, data, headers, coverHeaders, extraData;
             method = reqOpt.method;
-            headers = _headers;
             if (req) {
                 url = handler.getUrl(req.params);
                 data = req.data;
-                if (req.headers) {
-                    headers = headers ? { ...headers, ...req.headers } : req.headers;
-                }
+                headers = req.headers || _headers;
+                coverHeaders = req.coverHeaders || _coverHeaders;
                 extraData = req.extraData;
             } else {
                 url = handler.getUrl();
+                headers = _headers;
+                coverHeaders = _coverHeaders;
             }
             return this.request({
                 url: url,
                 method: method,
                 data: data,
                 headers: headers,
+                coverHeaders: coverHeaders || false,
                 extraData: extraData
             });
-        };
-        handler.setHeaders = function(h) {
-            _headers = h;
-            return handler;
-        };
-        handler.addHeaders = function(h) {
-            if (!h) {
-                return handler;
-            }
-            _headers = { ...(_headers || EmptyObj), ...h };
-            return handler;
         };
         handler.getUrl = function(data) {
             let url = reqOpt.createUrl(data);
