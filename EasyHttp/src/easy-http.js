@@ -36,8 +36,8 @@ class EasyHttp {
         }
 
         return chain.proceed({
-            url: req.url,
-            method: req.method,
+            url: req.url || "",
+            method: req.method || "",
             data: req.data,
             headers: headers,
             extraData: req.extraData
@@ -47,28 +47,24 @@ class EasyHttp {
      * 创建请求函数
      */
     createHandler(reqOpt) {
-        let _headers;
-        let _coverHeaders;
         let handler = req => {
             let url, method, data, headers, coverHeaders, extraData;
             method = reqOpt.method;
             if (req) {
                 url = handler.getUrl(req.params);
                 data = req.data;
-                headers = req.headers || _headers;
-                coverHeaders = req.coverHeaders || _coverHeaders;
+                headers = req.headers;
+                coverHeaders = req.coverHeaders;
                 extraData = req.extraData;
             } else {
                 url = handler.getUrl();
-                headers = _headers;
-                coverHeaders = _coverHeaders;
             }
             return this.request({
                 url: url,
                 method: method,
                 data: data,
                 headers: headers,
-                coverHeaders: coverHeaders || false,
+                coverHeaders: coverHeaders,
                 extraData: extraData
             });
         };

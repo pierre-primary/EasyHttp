@@ -774,8 +774,8 @@
         }
 
         return chain.proceed({
-          url: req.url,
-          method: req.method,
+          url: req.url || "",
+          method: req.method || "",
           data: req.data,
           headers: headers,
           extraData: req.extraData
@@ -790,10 +790,6 @@
       value: function createHandler(reqOpt) {
         var _this = this;
 
-        var _headers;
-
-        var _coverHeaders;
-
         var handler = function handler(req) {
           var url, method, data, headers, coverHeaders, extraData;
           method = reqOpt.method;
@@ -801,13 +797,11 @@
           if (req) {
             url = handler.getUrl(req.params);
             data = req.data;
-            headers = req.headers || _headers;
-            coverHeaders = req.coverHeaders || _coverHeaders;
+            headers = req.headers;
+            coverHeaders = req.coverHeaders;
             extraData = req.extraData;
           } else {
             url = handler.getUrl();
-            headers = _headers;
-            coverHeaders = _coverHeaders;
           }
 
           return _this.request({
@@ -815,7 +809,7 @@
             method: method,
             data: data,
             headers: headers,
-            coverHeaders: coverHeaders || false,
+            coverHeaders: coverHeaders,
             extraData: extraData
           });
         };
