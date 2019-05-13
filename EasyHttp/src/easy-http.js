@@ -117,8 +117,6 @@ const funcs = [
     "setRequestHandler",
     "setInterceptor",
     "addInterceptor",
-    "setPostInterceptor",
-    "addPostInterceptor",
     "setDictateHandler",
     "addDictateHandler",
     "removeDictateHandler",

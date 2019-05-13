@@ -331,9 +331,8 @@ function () {
     value: function dictateHandle(val, dictates) {
       var conf = this[pri$1].conf;
       val = conf.serializater(val);
-      dictates || (dictates = this.dictates);
 
-      if (dictates) {
+      if (dictates || (dictates = this.dictates)) {
         dictates.forEach(function (dictateName) {
           var dictateHandler = conf.getDictateHandler(dictateName);
           dictateHandler && (val = dictateHandler(val));
@@ -524,7 +523,6 @@ function () {
       this.setHeaders(options.headers);
       this.setRequestHandler(options.requestHandler);
       this.setInterceptor(options.interceptors);
-      this.setPostInterceptor(options.postInterceptors);
       this.setSerializater(options.serializater);
     }
   }, {
@@ -623,38 +621,6 @@ function () {
       return this;
     }
   }, {
-    key: "setPostInterceptor",
-    value: function setPostInterceptor() {
-      for (var _len4 = arguments.length, postInterceptors = new Array(_len4), _key4 = 0; _key4 < _len4; _key4++) {
-        postInterceptors[_key4] = arguments[_key4];
-      }
-
-      if (postInterceptors && postInterceptors.length > 0) {
-        this[pri$2].postInterceptors = [].concat(postInterceptors);
-      } else {
-        this[pri$2].postInterceptors = undefined;
-      }
-
-      return this;
-    }
-  }, {
-    key: "addPostInterceptor",
-    value: function addPostInterceptor() {
-      for (var _len5 = arguments.length, postInterceptors = new Array(_len5), _key5 = 0; _key5 < _len5; _key5++) {
-        postInterceptors[_key5] = arguments[_key5];
-      }
-
-      if (postInterceptors && postInterceptors.length > 0) {
-        var _this$pri$postInterce;
-
-        this[pri$2].postInterceptors || (this[pri$2].postInterceptors = []);
-
-        (_this$pri$postInterce = this[pri$2].postInterceptors).push.apply(_this$pri$postInterce, postInterceptors);
-      }
-
-      return this;
-    }
-  }, {
     key: "setDictateHandler",
     value: function setDictateHandler(dictateHandlers) {
       if (dictateHandlers) {
@@ -685,8 +651,8 @@ function () {
     value: function removeDictateHandler() {
       var _this2 = this;
 
-      for (var _len6 = arguments.length, names = new Array(_len6), _key6 = 0; _key6 < _len6; _key6++) {
-        names[_key6] = arguments[_key6];
+      for (var _len4 = arguments.length, names = new Array(_len4), _key4 = 0; _key4 < _len4; _key4++) {
+        names[_key4] = arguments[_key4];
       }
 
       if (this[pri$2].dictateHandlers && names && names.length > 0) {
@@ -753,10 +719,6 @@ function (_Configure) {
 
         get interceptors() {
           return that[pri$2].interceptors || Conf[pri$2].interceptors;
-        },
-
-        get postInterceptors() {
-          return that[pri$2].postInterceptors || Conf[pri$2].postInterceptors;
         },
 
         getDictateHandler: function getDictateHandler(dictateName) {
@@ -901,7 +863,7 @@ Object.defineProperty(EasyHttp.prototype, "addRequests", {
  * 对外配置方法注册为静态和非静态两种方式
  */
 
-var funcs = ["init", "setBaseUrl", "setDefaultMethod", "setDictate", "setHeaders", "addHeaders", "removeHeaders", "setRequestHandler", "setInterceptor", "addInterceptor", "setPostInterceptor", "addPostInterceptor", "setDictateHandler", "addDictateHandler", "removeDictateHandler", "setSerializater"];
+var funcs = ["init", "setBaseUrl", "setDefaultMethod", "setDictate", "setHeaders", "addHeaders", "removeHeaders", "setRequestHandler", "setInterceptor", "addInterceptor", "setDictateHandler", "addDictateHandler", "removeDictateHandler", "setSerializater"];
 var n = funcs.length;
 
 var _loop2 = function _loop2(i) {

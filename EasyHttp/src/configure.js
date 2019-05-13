@@ -27,7 +27,6 @@ class Configure {
         this.setHeaders(options.headers);
         this.setRequestHandler(options.requestHandler);
         this.setInterceptor(options.interceptors);
-        this.setPostInterceptor(options.postInterceptors);
         this.setSerializater(options.serializater);
     }
 
@@ -92,23 +91,6 @@ class Configure {
         if (interceptors && interceptors.length > 0) {
             this[pri].interceptors || (this[pri].interceptors = []);
             this[pri].interceptors.push(...interceptors);
-        }
-        return this;
-    }
-
-    setPostInterceptor(...postInterceptors) {
-        if (postInterceptors && postInterceptors.length > 0) {
-            this[pri].postInterceptors = [...postInterceptors];
-        } else {
-            this[pri].postInterceptors = undefined;
-        }
-        return this;
-    }
-
-    addPostInterceptor(...postInterceptors) {
-        if (postInterceptors && postInterceptors.length > 0) {
-            this[pri].postInterceptors || (this[pri].postInterceptors = []);
-            this[pri].postInterceptors.push(...postInterceptors);
         }
         return this;
     }
@@ -185,10 +167,6 @@ export class ConfigureGetter extends Configure {
 
             get interceptors() {
                 return that[pri].interceptors || Conf[pri].interceptors;
-            },
-
-            get postInterceptors() {
-                return that[pri].postInterceptors || Conf[pri].postInterceptors;
             },
 
             getDictateHandler(dictateName) {
