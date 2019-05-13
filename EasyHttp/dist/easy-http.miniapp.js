@@ -1,5 +1,5 @@
 /*
-* easy-http v1.0.3
+* easy-http v1.1.0
 * (c) 2018-2019 PengYuan-Jiang
 */
 'use strict';
@@ -21,25 +21,22 @@ function is(value, type) {
   return value.constructor === type || value instanceof type;
 }
 
-var ODLUtils = {
-  initDictate(dictateStr) {
-    if (dictateStr) {
-      let dictates;
-      let cmds = dictateStr.split(":");
+function initDictate(dictateStr) {
+  if (dictateStr) {
+    let dictates;
+    let cmds = dictateStr.split(":");
 
-      for (let i = 0, n = cmds.length; i < n; i++) {
-        let e = cmds[i];
+    for (let i = 0, n = cmds.length; i < n; i++) {
+      let e = cmds[i];
 
-        if (e) {
-          (dictates || (dictates = [])).push(e);
-        }
+      if (e) {
+        (dictates || (dictates = [])).push(e);
       }
-
-      return dictates;
     }
-  }
 
-};
+    return dictates;
+  }
+}
 
 const REG = /(?:{([^{}]*))?{\s*([a-z_][a-z0-9_]*)\s*((?::[a-z_][a-z0-9_]*)*)\s*}(?:([^{}]*)})?/gi; //结点类型
 
@@ -75,7 +72,7 @@ class ODLConstructor {
       }
 
       let key = result[2];
-      let dictates = ODLUtils.initDictate(result[3]) || undefined;
+      let dictates = initDictate(result[3]) || undefined;
       nodes.push({
         type: NODE_TYPE.CMD,
         data: {
@@ -154,56 +151,52 @@ const pri$1 = Symbol("privateScope");
 class RequestOption {
   constructor(configGetter, obj) {
     this[pri$1] = {
-      configGetter: configGetter
+      conf: configGetter
     };
 
     if (obj) {
       if (is(obj, Object)) {
         let temp;
-        (temp = obj.action || obj.a) && (this[pri$1].action = temp);
+        (temp = obj.method || obj.m) && (this[pri$1].method = temp);
         (temp = obj.urlFormat || obj.u) && (this[pri$1].urlFormat = temp);
-        (temp = obj.dictate || obj.d) && (this[pri$1].requestDictate = temp);
+        this[pri$1].dictates = initDictate(obj.dictate || obj.d);
       } else {
         this[pri$1].urlFormat = obj;
       }
     }
   }
 
-  get conf() {
-    return this[pri$1].configGetter;
+  get baseUrl() {
+    return this[pri$1].conf.baseUrl || "";
   }
 
-  get action() {
-    return this[pri$1].action;
+  get method() {
+    return this[pri$1].method || this[pri$1].conf.defaultMethod;
   }
 
   get urlFormat() {
     return this[pri$1].urlFormat;
   }
 
-  get requestDictate() {
-    return this[pri$1].requestDictate;
+  get dictates() {
+    return this[pri$1].dictates || this[pri$1].conf.dictates;
   }
 
   get odl() {
-    if (!(["odl"] in this[pri$1])) {
+    if (!("odl" in this[pri$1])) {
       this[pri$1].odl = this.urlFormat && new ODL(this.urlFormat) || undefined;
     }
 
     return this[pri$1].odl;
   }
-  /**
-   * 参数解析
-   */
 
-
-  analysis(data) {
-    let nodes = this.odl.nodes;
+  createUrl(data) {
+    let nodes = this.odl && this.odl.nodes;
     data = { ...(data || {})
     };
     let urlFormat = "";
 
-    for (let i = 0, n = nodes.length; i < n; i++) {
+    for (let i = 0, n = nodes && nodes.length || 0; i < n; i++) {
       let node = nodes[i];
       let block;
 
@@ -216,18 +209,7 @@ class RequestOption {
           let cmdData = node.data;
           let val = data[cmdData.key];
           delete data[cmdData.key];
-          let szr = this.serializater;
-          val = szr(val);
-
-          if (cmdData.dictates) {
-            cmdData.dictates.forEach(e => {
-              let hd = this.dictateMap(e);
-
-              if (hd) {
-                val = hd(val);
-              }
-            });
-          }
+          val = this.dictateHandle(val, cmdData.dictates);
 
           if (val === undefined) {
             continue;
@@ -245,11 +227,11 @@ class RequestOption {
 
     for (let key in data) {
       let val = data[key];
+      val = this.dictateHandle(val);
 
       if (val === undefined) {
         continue;
-      } // query += (query ? "&" : "") + key + "=" + val;
-
+      }
 
       query = (query ? query + "&" : "") + key + "=" + val;
     }
@@ -261,129 +243,40 @@ class RequestOption {
     return url;
   }
 
-}
+  dictateHandle(val, dictates) {
+    let conf = this[pri$1].conf;
+    val = conf.serializater(val);
 
-class Requester {
-  constructor(requestOption) {
-    this.ro = requestOption;
-  }
-
-  get handler() {
-    return this.createHandler();
-  }
-  /**
-   * 创建请求函数
-   */
-
-
-  createHandler() {
-    let $slef = this;
-    let header;
-
-    let handler = function (options) {
-      let promise = new Promise((resolve, reject) => {
-        let url = handler.getUrl(options && options.params);
-        let actionName = $slef.ro.action;
-        let request = {
-          url,
-          params: options && options.params,
-          action: actionName,
-          data: options && options.data,
-          other: options && options.other,
-          header: options.header ? { ...handler.getHeader(),
-            ...options.header
-          } : handler.getHeader()
-        };
-        let hd = $slef.ro.handler;
-
-        if (hd) {
-          let prhds = $slef.ro.preHandlers;
-
-          if (prhds && prhds.length > 0) {
-            for (let i = 0, len = prhds.length; i < len; i++) {
-              if (prhds[i](request, resolve, reject)) {
-                return;
-              }
-            }
-          }
-
-          try {
-            hd(request).then(resp => {
-              resolve({
-                request,
-                response: resp
-              });
-            }).catch(resp => {
-              reject({
-                errType: 0,
-                request,
-                response: resp
-              });
-            });
-          } catch (e) {
-            reject({
-              errType: -1,
-              request,
-              msg: e
-            });
-          }
-        } else {
-          reject({
-            errType: -1,
-            request,
-            msg: "not found handler"
-          });
-        }
+    if (dictates || (dictates = this.dictates)) {
+      dictates.forEach(dictateName => {
+        let dictateHandler = conf.getDictateHandler(dictateName);
+        dictateHandler && (val = dictateHandler(val));
       });
-      let pohds = $slef.ro.postHandlers;
+    }
 
-      if (pohds && pohds.length > 0) {
-        return Promise.resolve().then(() => {
-          let _p = promise;
-
-          for (let i = 0, len = pohds.length; i < len; i++) {
-            _p = pohds[i](_p);
-          }
-
-          return _p;
-        });
-      } else {
-        return promise;
-      }
-    };
-
-    handler.setHeader = function (h) {
-      header = h ? { ...h
-      } : null;
-      return handler;
-    };
-
-    handler.addHeader = function (h) {
-      if (!h) {
-        return handler;
-      }
-
-      header = { ...this.getHeader(),
-        ...h
-      };
-      return handler;
-    };
-
-    handler.getHeader = function () {
-      return header || $slef.ro.header;
-    };
-
-    handler.getUrl = function (data) {
-      let url = $slef.ro.analysis(data);
-      return url;
-    };
-
-    return handler;
+    return val;
   }
 
 }
 
-const DefaultAction = "get";
+class Chain {
+  constructor(interceptors, index = 0) {
+    this.interceptors = interceptors;
+    this.index = index;
+  }
+
+  proceed(request) {
+    if (this.index >= this.interceptors.length) {
+      throw "It's the last interceptor";
+    }
+
+    let chain = new Chain(this.interceptors, this.index + 1);
+    return this.interceptors[this.index](request, request => chain.proceed(request));
+  }
+
+}
+
+const DefaultMethod = "get";
 
 const DefaultSerializater = function (value) {
   if (is(value, Object)) {
@@ -406,12 +299,11 @@ class Configure {
     }
 
     this.setBaseUrl(options.baseUrl);
-    this.setAction(options.action);
+    this.setDefaultMethod(options.defaultMethod);
     this.setDictate(options.dictate);
     this.setHeaders(options.headers);
     this.setRequestHandler(options.requestHandler);
-    this.setPreInterceptor(options.preInterceptors);
-    this.setPostInterceptor(options.postInterceptors);
+    this.setInterceptor(options.interceptors);
     this.setSerializater(options.serializater);
   }
 
@@ -420,13 +312,13 @@ class Configure {
     return this;
   }
 
-  setAction(action) {
-    this[pri$2].action = action;
+  setDefaultMethod(defaultMethod) {
+    this[pri$2].defaultMethod = defaultMethod;
     return this;
   }
 
   setDictate(dictateStr) {
-    this[pri$2].dictates = ODLUtils.initDictate(dictateStr);
+    this[pri$2].dictates = initDictate(dictateStr);
     return this;
   }
 
@@ -471,37 +363,18 @@ class Configure {
     return this;
   }
 
-  setPreInterceptor(...preInterceptors) {
-    if (preInterceptors && preInterceptors.length > 0) {
-      this[pri$2].preInterceptors = [...preInterceptors];
+  setInterceptor(...interceptors) {
+    if (interceptors && interceptors.length > 0) {
+      this[pri$2].interceptors = [...interceptors];
     } else {
-      this[pri$2].preInterceptors = null;
+      this[pri$2].interceptors = null;
     }
   }
 
-  addPreInterceptor(...preInterceptors) {
-    if (preInterceptors && preInterceptors.length > 0) {
-      this[pri$2].preInterceptors || (this[pri$2].preInterceptors = []);
-      this[pri$2].preInterceptors.push(...preInterceptors);
-    }
-
-    return this;
-  }
-
-  setPostInterceptor(...postInterceptors) {
-    if (postInterceptors && postInterceptors.length > 0) {
-      this[pri$2].postInterceptors = [...postInterceptors];
-    } else {
-      this[pri$2].postInterceptors = undefined;
-    }
-
-    return this;
-  }
-
-  addPostInterceptor(...postInterceptors) {
-    if (postInterceptors && postInterceptors.length > 0) {
-      this[pri$2].postInterceptors || (this[pri$2].postInterceptors = []);
-      this[pri$2].postInterceptors.push(...postInterceptors);
+  addInterceptor(...interceptors) {
+    if (interceptors && interceptors.length > 0) {
+      this[pri$2].interceptors || (this[pri$2].interceptors = []);
+      this[pri$2].interceptors.push(...interceptors);
     }
 
     return this;
@@ -547,81 +420,141 @@ class Configure {
     this[pri$2].serializater = serializater;
     return this;
   }
-  /**
-   * 插件安装
-   */
-
-
-  use(plugin) {
-    plugin.install(this);
-    return this;
-  }
 
 }
 
 const Conf = new Configure();
 class ConfigureGetter extends Configure {
-  get configureGetter() {
-    if (!this[pri$2].configGetter) {
-      this[pri$2].configGetter = {
-        get defaultHeaders() {
-          return this[pri$2].headers || Conf[pri$2].headers;
-        },
-
-        get defaultAction() {
-          return (this[pri$2].action || Conf[pri$2].action || DefaultAction).toLowerCase();
-        },
-
-        get defaultDictates() {
-          return this[pri$2].dictates || Conf[pri$2].dictates;
-        },
-
-        get baseUrl() {
-          return this[pri$2].baseUrl || Conf[pri$2].baseUrl;
-        },
-
-        get serializater() {
-          return this[pri$2].serializater || Conf[pri$2].serializater || DefaultSerializater;
-        },
-
-        get requestHandler() {
-          return this[pri$2].requestHandler || Conf[pri$2].requestHandler;
-        },
-
-        get preInterceptors() {
-          return this[pri$2].preInterceptors || Conf[pri$2].preInterceptors;
-        },
-
-        get postInterceptors() {
-          return this[pri$2].postInterceptors || Conf[pri$2].postInterceptors;
-        },
-
-        dictateMap(dictateName) {
-          return this[pri$2].dictateHandlers && this[pri$2].dictateHandlers[dictateName] || Conf[pri$2].dictateHandlers && Conf[pri$2].dictateHandlers[dictateName];
-        }
-
-      };
+  get getter() {
+    if (this[pri$2].getter) {
+      return this[pri$2].getter;
     }
+
+    let that = this;
+    this[pri$2].getter = {
+      get headers() {
+        return that[pri$2].headers || Conf[pri$2].headers;
+      },
+
+      get defaultMethod() {
+        return (that[pri$2].defaultMethod || Conf[pri$2].defaultMethod || DefaultMethod).toLowerCase();
+      },
+
+      get dictates() {
+        return that[pri$2].dictates || Conf[pri$2].dictates;
+      },
+
+      get baseUrl() {
+        return that[pri$2].baseUrl || Conf[pri$2].baseUrl;
+      },
+
+      get serializater() {
+        return that[pri$2].serializater || Conf[pri$2].serializater || DefaultSerializater;
+      },
+
+      get requestHandler() {
+        return that[pri$2].requestHandler || Conf[pri$2].requestHandler;
+      },
+
+      get interceptors() {
+        return that[pri$2].interceptors || Conf[pri$2].interceptors;
+      },
+
+      getDictateHandler(dictateName) {
+        return that[pri$2].dictateHandlers && that[pri$2].dictateHandlers[dictateName] || Conf[pri$2].dictateHandlers && Conf[pri$2].dictateHandlers[dictateName];
+      }
+
+    };
+    return this[pri$2].getter;
   }
 
 }
 
-const [rqots, rqers, in_conf, getRequestItem] = [Symbol("requestOptions"), Symbol("requesters"), Symbol("configure"), Symbol("getRequestItem")];
+const EmptyArr = [];
+const EmptyObj = [];
+const pri$3 = Symbol("privateScope");
 
 class EasyHttp {
   constructor(baseUrl, requests) {
-    this[in_conf] = new ConfigureGetter();
+    this[pri$3] = {
+      conf: new ConfigureGetter()
+    };
     this.setBaseUrl(baseUrl).addRequests(requests);
-  }
+  } //发起请求
 
-  [getRequestItem](key) {
-    this[rqers] || (this[rqers] = {});
 
-    if (key in this[rqots] && !(key in this[rqers])) {
-      this[rqers][key] = new Requester(this[rqots][key]);
+  request(req) {
+    if (!req) {
+      throw "req is required";
     }
 
-    return this[rqers] && this[rqers][key];
+    let conf = this[pri$3].conf.getter;
+    let requestHandler = conf.requestHandler;
+
+    if (!requestHandler) {
+      throw "requestHandler has not been set yet";
+    }
+
+    let interceptors = [//拦截器
+    ...(conf.interceptors || EmptyArr), //最后一个拦截器必须是请求处理
+    request => {
+      return requestHandler(request);
+    }];
+    let chain = new Chain(interceptors);
+    let headers;
+
+    if (req.coverHeaders) {
+      headers = req.headers || EmptyObj;
+    } else {
+      headers = { ...(conf.headers || EmptyObj),
+        ...(req.headers || EmptyObj)
+      };
+    }
+
+    return chain.proceed({
+      url: req.url || "",
+      method: req.method || "",
+      data: req.data,
+      headers: headers,
+      extraData: req.extraData
+    });
+  }
+  /**
+   * 创建请求函数
+   */
+
+
+  createHandler(reqOpt) {
+    let handler = req => {
+      let url, method, data, headers, coverHeaders, extraData;
+      method = reqOpt.method;
+
+      if (req) {
+        url = handler.getUrl(req.params);
+        data = req.data;
+        headers = req.headers;
+        coverHeaders = req.coverHeaders;
+        extraData = req.extraData;
+      } else {
+        url = handler.getUrl();
+      }
+
+      return this.request({
+        url: url,
+        method: method,
+        data: data,
+        headers: headers,
+        coverHeaders: coverHeaders,
+        extraData: extraData
+      });
+    };
+
+    handler.getUrl = function (data) {
+      let url = reqOpt.createUrl(data);
+      return url;
+    };
+
+    return handler;
   }
 
 }
@@ -631,18 +564,17 @@ Object.defineProperty(EasyHttp.prototype, "addRequests", {
   enumerable: false,
   get: function () {
     return function (requests) {
-      if (requests) {
-        this[rqots] || (this[rqots] = {});
+      if (!requests) {
+        return this;
+      }
 
-        for (let key in requests) {
-          this[rqots][key] = new RequestOption(this[in_conf].configureGetter, requests[key]);
-          Object.defineProperty(this, key, {
-            get: function () {
-              let item = this[getRequestItem](key);
-              return item && item.handler;
-            }
-          });
-        }
+      for (let key in requests) {
+        let reqOpt = new RequestOption(this[pri$3].conf.getter, requests[key]);
+        Object.defineProperty(this, key, {
+          get: function () {
+            return this.createHandler(reqOpt);
+          }
+        });
       }
 
       return this;
@@ -653,7 +585,7 @@ Object.defineProperty(EasyHttp.prototype, "addRequests", {
  * 对外配置方法注册为静态和非静态两种方式
  */
 
-const funcs = ["init", "setBaseUrl", "setAction", "setDictate", "setHeaders", "addHeaders", "removeHeaders", "setRequestHandler", "setPreInterceptor", "addPreInterceptor", "setPostInterceptor", "addPostInterceptor", "setDictateHandler", "addDictateHandler", "removeDictateHandler", "setSerializater"];
+const funcs = ["init", "setBaseUrl", "setDefaultMethod", "setDictate", "setHeaders", "addHeaders", "removeHeaders", "setRequestHandler", "setInterceptor", "addInterceptor", "setDictateHandler", "addDictateHandler", "removeDictateHandler", "setSerializater"];
 const n = funcs.length;
 
 for (let i = 0; i < n; i++) {
@@ -673,7 +605,7 @@ for (let i = 0; i < n; i++) {
     enumerable: false,
     get: function () {
       return function () {
-        this[in_conf][key](...arguments);
+        this[pri$3].conf[key](...arguments);
         return this;
       }.bind(this);
     }

@@ -9,7 +9,8 @@
         "types/*.d.ts"
     ],
     "scripts": {
-        "build": "node build/rollup.config.prod.js"
+        "build": "node build/rollup.config.prod.js",
+        "build-miniapp": "node build/rollup.config.miniapp.js"
     },
     "repository": {
         "type": "git",

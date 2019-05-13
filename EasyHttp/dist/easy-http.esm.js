@@ -752,8 +752,17 @@ function () {
   createClass(EasyHttp, [{
     key: "request",
     value: function request(req) {
+      if (!req) {
+        throw "req is required";
+      }
+
       var conf = this[pri$3].conf.getter;
       var requestHandler = conf.requestHandler;
+
+      if (!requestHandler) {
+        throw "requestHandler has not been set yet";
+      }
+
       var interceptors = [].concat(toConsumableArray(conf.interceptors || EmptyArr), [//最后一个拦截器必须是请求处理
       function (request) {
         return requestHandler(request);

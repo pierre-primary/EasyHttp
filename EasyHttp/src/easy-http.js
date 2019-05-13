@@ -15,8 +15,14 @@ class EasyHttp {
 
     //发起请求
     request(req) {
+        if (!req) {
+            throw "req is required";
+        }
         let conf = this[pri].conf.getter;
         let requestHandler = conf.requestHandler;
+        if (!requestHandler) {
+            throw "requestHandler has not been set yet";
+        }
         let interceptors = [
             //拦截器
             ...(conf.interceptors || EmptyArr),
