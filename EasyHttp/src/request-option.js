@@ -1,30 +1,30 @@
 import { is } from "./utils/utils";
-import ODLUtils from "./odl/odl-utils";
+import { initDictate } from "./odl/odl-utils";
 import ODL, { NODE_TYPE } from "./odl/odl";
 
 const pri = Symbol("privateScope");
 
 export default class RequestOption {
     constructor(configGetter, obj) {
-        this[pri] = { configGetter: configGetter };
+        this[pri] = { conf: configGetter };
         if (obj) {
             if (is(obj, Object)) {
                 let temp;
-                (temp = obj.action || obj.a) && (this[pri].action = temp);
+                (temp = obj.method || obj.m) && (this[pri].method = temp);
                 (temp = obj.urlFormat || obj.u) && (this[pri].urlFormat = temp);
-                this[pri].dictates = ODLUtils.initDictate(obj.dictate || obj.d);
+                this[pri].dictates = initDictate(obj.dictate || obj.d);
             } else {
                 this[pri].urlFormat = obj;
             }
         }
     }
 
-    get conf() {
-        return this[pri].configGetter;
+    get baseUrl() {
+        return this[pri].conf.baseUrl || "";
     }
 
-    get action() {
-        return this[pri].action || this.conf.action;
+    get method() {
+        return this[pri].method || this[pri].conf.defaultMethod;
     }
 
     get urlFormat() {
@@ -32,7 +32,7 @@ export default class RequestOption {
     }
 
     get dictates() {
-        return this[pri].dictates || this.conf.dictates;
+        return this[pri].dictates || this[pri].conf.dictates;
     }
 
     get odl() {
@@ -43,10 +43,10 @@ export default class RequestOption {
     }
 
     createUrl(data) {
-        let nodes = this.odl.nodes;
+        let nodes = this.odl && this.odl.nodes;
         data = { ...(data || {}) };
         let urlFormat = "";
-        for (let i = 0, n = nodes.length; i < n; i++) {
+        for (let i = 0, n = (nodes && nodes.length) || 0; i < n; i++) {
             let node = nodes[i];
             let block;
             switch (node.type) {
@@ -59,7 +59,7 @@ export default class RequestOption {
                     let val = data[cmdData.key];
                     delete data[cmdData.key];
 
-                    val = dictateHandle(val, cmdData.dictates);
+                    val = this.dictateHandle(val, cmdData.dictates);
                     if (val === undefined) {
                         continue;
                     }
@@ -72,7 +72,7 @@ export default class RequestOption {
         let query;
         for (let key in data) {
             let val = data[key];
-            val = dictateHandle(val);
+            val = this.dictateHandle(val);
             if (val === undefined) {
                 continue;
             }
@@ -85,11 +85,12 @@ export default class RequestOption {
     }
 
     dictateHandle(val, dictates) {
-        val = this.conf.serializater(val);
+        let conf = this[pri].conf;
+        val = conf.serializater(val);
         dictates || (dictates = this.dictates);
         if (dictates) {
             dictates.forEach(dictateName => {
-                let dictateHandler = this.conf.getDictateHandler(dictateName);
+                let dictateHandler = conf.getDictateHandler(dictateName);
                 dictateHandler && (val = dictateHandler(val));
             });
         }

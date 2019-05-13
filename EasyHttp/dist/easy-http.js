@@ -8,32 +8,6 @@
   (global = global || self, global.EasyHttp = factory());
 }(this, function () { 'use strict';
 
-  function _classCallCheck(instance, Constructor) {
-    if (!(instance instanceof Constructor)) {
-      throw new TypeError("Cannot call a class as a function");
-    }
-  }
-
-  var classCallCheck = _classCallCheck;
-
-  function _defineProperties(target, props) {
-    for (var i = 0; i < props.length; i++) {
-      var descriptor = props[i];
-      descriptor.enumerable = descriptor.enumerable || false;
-      descriptor.configurable = true;
-      if ("value" in descriptor) descriptor.writable = true;
-      Object.defineProperty(target, descriptor.key, descriptor);
-    }
-  }
-
-  function _createClass(Constructor, protoProps, staticProps) {
-    if (protoProps) _defineProperties(Constructor.prototype, protoProps);
-    if (staticProps) _defineProperties(Constructor, staticProps);
-    return Constructor;
-  }
-
-  var createClass = _createClass;
-
   function _defineProperty(obj, key, value) {
     if (key in obj) {
       Object.defineProperty(obj, key, {
@@ -72,6 +46,62 @@
 
   var objectSpread = _objectSpread;
 
+  function _arrayWithoutHoles(arr) {
+    if (Array.isArray(arr)) {
+      for (var i = 0, arr2 = new Array(arr.length); i < arr.length; i++) {
+        arr2[i] = arr[i];
+      }
+
+      return arr2;
+    }
+  }
+
+  var arrayWithoutHoles = _arrayWithoutHoles;
+
+  function _iterableToArray(iter) {
+    if (Symbol.iterator in Object(iter) || Object.prototype.toString.call(iter) === "[object Arguments]") return Array.from(iter);
+  }
+
+  var iterableToArray = _iterableToArray;
+
+  function _nonIterableSpread() {
+    throw new TypeError("Invalid attempt to spread non-iterable instance");
+  }
+
+  var nonIterableSpread = _nonIterableSpread;
+
+  function _toConsumableArray(arr) {
+    return arrayWithoutHoles(arr) || iterableToArray(arr) || nonIterableSpread();
+  }
+
+  var toConsumableArray = _toConsumableArray;
+
+  function _classCallCheck(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  }
+
+  var classCallCheck = _classCallCheck;
+
+  function _defineProperties(target, props) {
+    for (var i = 0; i < props.length; i++) {
+      var descriptor = props[i];
+      descriptor.enumerable = descriptor.enumerable || false;
+      descriptor.configurable = true;
+      if ("value" in descriptor) descriptor.writable = true;
+      Object.defineProperty(target, descriptor.key, descriptor);
+    }
+  }
+
+  function _createClass(Constructor, protoProps, staticProps) {
+    if (protoProps) _defineProperties(Constructor.prototype, protoProps);
+    if (staticProps) _defineProperties(Constructor, staticProps);
+    return Constructor;
+  }
+
+  var createClass = _createClass;
+
   /**
    * 判断对象类型 （无法区分Function Is Object）
    *
@@ -89,24 +119,22 @@
     return value.constructor === type || value instanceof type;
   }
 
-  var ODLUtils = {
-    initDictate: function initDictate(dictateStr) {
-      if (dictateStr) {
-        var dictates;
-        var cmds = dictateStr.split(":");
+  function initDictate(dictateStr) {
+    if (dictateStr) {
+      var dictates;
+      var cmds = dictateStr.split(":");
 
-        for (var i = 0, n = cmds.length; i < n; i++) {
-          var e = cmds[i];
+      for (var i = 0, n = cmds.length; i < n; i++) {
+        var e = cmds[i];
 
-          if (e) {
-            (dictates || (dictates = [])).push(e);
-          }
+        if (e) {
+          (dictates || (dictates = [])).push(e);
         }
-
-        return dictates;
       }
+
+      return dictates;
     }
-  };
+  }
 
   var REG = /(?:{([^{}]*))?{\s*([a-z_][a-z0-9_]*)\s*((?::[a-z_][a-z0-9_]*)*)\s*}(?:([^{}]*)})?/gi; //结点类型
 
@@ -146,7 +174,7 @@
         }
 
         var key = result[2];
-        var dictates = ODLUtils.initDictate(result[3]) || undefined;
+        var dictates = initDictate(result[3]) || undefined;
         nodes.push({
           type: NODE_TYPE.CMD,
           data: {
@@ -236,15 +264,15 @@
       classCallCheck(this, RequestOption);
 
       this[pri$1] = {
-        configGetter: configGetter
+        conf: configGetter
       };
 
       if (obj) {
         if (is(obj, Object)) {
           var temp;
-          (temp = obj.action || obj.a) && (this[pri$1].action = temp);
+          (temp = obj.method || obj.m) && (this[pri$1].method = temp);
           (temp = obj.urlFormat || obj.u) && (this[pri$1].urlFormat = temp);
-          (temp = obj.dictate || obj.d) && (this[pri$1].requestDictate = temp);
+          this[pri$1].dictates = initDictate(obj.dictate || obj.d);
         } else {
           this[pri$1].urlFormat = obj;
         }
@@ -252,55 +280,35 @@
     }
 
     createClass(RequestOption, [{
-      key: "analysis",
-
-      /**
-       * 参数解析
-       */
-      value: function analysis(data) {
-        var _this = this;
-
-        var nodes = this.odl.nodes;
+      key: "createUrl",
+      value: function createUrl(data) {
+        var nodes = this.odl && this.odl.nodes;
         data = objectSpread({}, data || {});
         var urlFormat = "";
 
-        for (var i = 0, n = nodes.length; i < n; i++) {
+        for (var i = 0, n = nodes && nodes.length || 0; i < n; i++) {
           var node = nodes[i];
           var block = void 0;
 
-          var _ret = function () {
-            switch (node.type) {
-              case NODE_TYPE.TEXT:
-                block = node.data;
-                break;
+          switch (node.type) {
+            case NODE_TYPE.TEXT:
+              block = node.data;
+              break;
 
-              case NODE_TYPE.CMD:
-                var cmdData = node.data;
-                var val = data[cmdData.key];
-                delete data[cmdData.key];
-                var szr = _this.serializater;
-                val = szr(val);
+            case NODE_TYPE.CMD:
+              var cmdData = node.data;
+              var val = data[cmdData.key];
+              delete data[cmdData.key];
+              val = this.dictateHandle(val, cmdData.dictates);
 
-                if (cmdData.dictates) {
-                  cmdData.dictates.forEach(function (e) {
-                    var hd = _this.dictateMap(e);
+              if (val === undefined) {
+                continue;
+              }
 
-                    if (hd) {
-                      val = hd(val);
-                    }
-                  });
-                }
+              block = (cmdData.prefix || "") + val + (cmdData.suffix || "");
+              break;
+          }
 
-                if (val === undefined) {
-                  return "continue";
-                }
-
-                block = (cmdData.prefix || "") + val + (cmdData.suffix || "");
-                break;
-            }
-          }();
-
-          if (_ret === "continue") continue;
           urlFormat = urlFormat + block;
         }
 
@@ -308,14 +316,14 @@
         var query;
 
         for (var key in data) {
-          var val = data[key];
+          var _val = data[key];
+          _val = this.dictateHandle(_val);
 
-          if (val === undefined) {
+          if (_val === undefined) {
             continue;
-          } // query += (query ? "&" : "") + key + "=" + val;
+          }
 
-
-          query = (query ? query + "&" : "") + key + "=" + val;
+          query = (query ? query + "&" : "") + key + "=" + _val;
         }
 
         if (query) {
@@ -325,14 +333,30 @@
         return url;
       }
     }, {
-      key: "conf",
-      get: function get() {
-        return this[pri$1].configGetter;
+      key: "dictateHandle",
+      value: function dictateHandle(val, dictates) {
+        var conf = this[pri$1].conf;
+        val = conf.serializater(val);
+        dictates || (dictates = this.dictates);
+
+        if (dictates) {
+          dictates.forEach(function (dictateName) {
+            var dictateHandler = conf.getDictateHandler(dictateName);
+            dictateHandler && (val = dictateHandler(val));
+          });
+        }
+
+        return val;
       }
     }, {
-      key: "action",
+      key: "baseUrl",
       get: function get() {
-        return this[pri$1].action;
+        return this[pri$1].conf.baseUrl || "";
+      }
+    }, {
+      key: "method",
+      get: function get() {
+        return this[pri$1].method || this[pri$1].conf.defaultMethod;
       }
     }, {
       key: "urlFormat",
@@ -340,14 +364,14 @@
         return this[pri$1].urlFormat;
       }
     }, {
-      key: "requestDictate",
+      key: "dictates",
       get: function get() {
-        return this[pri$1].requestDictate;
+        return this[pri$1].dictates || this[pri$1].conf.dictates;
       }
     }, {
       key: "odl",
       get: function get() {
-        if (!(["odl"] in this[pri$1])) {
+        if (!("odl" in this[pri$1])) {
           this[pri$1].odl = this.urlFormat && new ODL(this.urlFormat) || undefined;
         }
 
@@ -358,128 +382,33 @@
     return RequestOption;
   }();
 
-  var Requester =
+  var Chain =
   /*#__PURE__*/
   function () {
-    function Requester(requestOption) {
-      classCallCheck(this, Requester);
+    function Chain(interceptors) {
+      var index = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
 
-      this.ro = requestOption;
+      classCallCheck(this, Chain);
+
+      this.interceptors = interceptors;
+      this.index = index;
     }
 
-    createClass(Requester, [{
-      key: "createHandler",
+    createClass(Chain, [{
+      key: "proceed",
+      value: function proceed(request) {
+        if (this.index >= this.interceptors.length) {
+          throw "It's the last interceptor";
+        }
 
-      /**
-       * 创建请求函数
-       */
-      value: function createHandler() {
-        var $slef = this;
-        var header;
-
-        var handler = function handler(options) {
-          var promise = new Promise(function (resolve, reject) {
-            var url = handler.getUrl(options && options.params);
-            var actionName = $slef.ro.action;
-            var request = {
-              url: url,
-              params: options && options.params,
-              action: actionName,
-              data: options && options.data,
-              other: options && options.other,
-              header: options.header ? objectSpread({}, handler.getHeader(), options.header) : handler.getHeader()
-            };
-            var hd = $slef.ro.handler;
-
-            if (hd) {
-              var prhds = $slef.ro.preHandlers;
-
-              if (prhds && prhds.length > 0) {
-                for (var i = 0, len = prhds.length; i < len; i++) {
-                  if (prhds[i](request, resolve, reject)) {
-                    return;
-                  }
-                }
-              }
-
-              try {
-                hd(request).then(function (resp) {
-                  resolve({
-                    request: request,
-                    response: resp
-                  });
-                })["catch"](function (resp) {
-                  reject({
-                    errType: 0,
-                    request: request,
-                    response: resp
-                  });
-                });
-              } catch (e) {
-                reject({
-                  errType: -1,
-                  request: request,
-                  msg: e
-                });
-              }
-            } else {
-              reject({
-                errType: -1,
-                request: request,
-                msg: "not found handler"
-              });
-            }
-          });
-          var pohds = $slef.ro.postHandlers;
-
-          if (pohds && pohds.length > 0) {
-            return Promise.resolve().then(function () {
-              var _p = promise;
-
-              for (var i = 0, len = pohds.length; i < len; i++) {
-                _p = pohds[i](_p);
-              }
-
-              return _p;
-            });
-          } else {
-            return promise;
-          }
-        };
-
-        handler.setHeader = function (h) {
-          header = h ? objectSpread({}, h) : null;
-          return handler;
-        };
-
-        handler.addHeader = function (h) {
-          if (!h) {
-            return handler;
-          }
-
-          header = objectSpread({}, this.getHeader(), h);
-          return handler;
-        };
-
-        handler.getHeader = function () {
-          return header || $slef.ro.header;
-        };
-
-        handler.getUrl = function (data) {
-          var url = $slef.ro.analysis(data);
-          return url;
-        };
-
-        return handler;
-      }
-    }, {
-      key: "handler",
-      get: function get() {
-        return this.createHandler();
+        var chain = new Chain(this.interceptors, this.index + 1);
+        return this.interceptors[this.index](request, function (request) {
+          return chain.proceed(request);
+        });
       }
     }]);
 
-    return Requester;
+    return Chain;
   }();
 
   function createCommonjsModule(fn, module) {
@@ -567,7 +496,7 @@
 
   var inherits = _inherits;
 
-  var DefaultAction = "get";
+  var DefaultMethod = "get";
 
   var DefaultSerializater = function DefaultSerializater(value) {
     if (is(value, Object)) {
@@ -596,11 +525,11 @@
         }
 
         this.setBaseUrl(options.baseUrl);
-        this.setAction(options.action);
+        this.setDefaultMethod(options.defaultMethod);
         this.setDictate(options.dictate);
         this.setHeaders(options.headers);
         this.setRequestHandler(options.requestHandler);
-        this.setPreInterceptor(options.preInterceptors);
+        this.setInterceptor(options.interceptors);
         this.setPostInterceptor(options.postInterceptors);
         this.setSerializater(options.serializater);
       }
@@ -611,15 +540,15 @@
         return this;
       }
     }, {
-      key: "setAction",
-      value: function setAction(action) {
-        this[pri$2].action = action;
+      key: "setDefaultMethod",
+      value: function setDefaultMethod(defaultMethod) {
+        this[pri$2].defaultMethod = defaultMethod;
         return this;
       }
     }, {
       key: "setDictate",
       value: function setDictate(dictateStr) {
-        this[pri$2].dictates = ODLUtils.initDictate(dictateStr);
+        this[pri$2].dictates = initDictate(dictateStr);
         return this;
       }
     }, {
@@ -670,31 +599,31 @@
         return this;
       }
     }, {
-      key: "setPreInterceptor",
-      value: function setPreInterceptor() {
-        for (var _len2 = arguments.length, preInterceptors = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
-          preInterceptors[_key2] = arguments[_key2];
+      key: "setInterceptor",
+      value: function setInterceptor() {
+        for (var _len2 = arguments.length, interceptors = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+          interceptors[_key2] = arguments[_key2];
         }
 
-        if (preInterceptors && preInterceptors.length > 0) {
-          this[pri$2].preInterceptors = [].concat(preInterceptors);
+        if (interceptors && interceptors.length > 0) {
+          this[pri$2].interceptors = [].concat(interceptors);
         } else {
-          this[pri$2].preInterceptors = null;
+          this[pri$2].interceptors = null;
         }
       }
     }, {
-      key: "addPreInterceptor",
-      value: function addPreInterceptor() {
-        for (var _len3 = arguments.length, preInterceptors = new Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
-          preInterceptors[_key3] = arguments[_key3];
+      key: "addInterceptor",
+      value: function addInterceptor() {
+        for (var _len3 = arguments.length, interceptors = new Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
+          interceptors[_key3] = arguments[_key3];
         }
 
-        if (preInterceptors && preInterceptors.length > 0) {
-          var _this$pri$preIntercep;
+        if (interceptors && interceptors.length > 0) {
+          var _this$pri$interceptor;
 
-          this[pri$2].preInterceptors || (this[pri$2].preInterceptors = []);
+          this[pri$2].interceptors || (this[pri$2].interceptors = []);
 
-          (_this$pri$preIntercep = this[pri$2].preInterceptors).push.apply(_this$pri$preIntercep, preInterceptors);
+          (_this$pri$interceptor = this[pri$2].interceptors).push.apply(_this$pri$interceptor, interceptors);
         }
 
         return this;
@@ -778,16 +707,6 @@
         this[pri$2].serializater = serializater;
         return this;
       }
-      /**
-       * 插件安装
-       */
-
-    }, {
-      key: "use",
-      value: function use(plugin) {
-        plugin.install(this);
-        return this;
-      }
     }]);
 
     return Configure;
@@ -806,58 +725,60 @@
     }
 
     createClass(ConfigureGetter, [{
-      key: "configureGetter",
+      key: "getter",
       get: function get() {
-        if (!this[pri$2].configGetter) {
-          this[pri$2].configGetter = {
-            get defaultHeaders() {
-              return this[pri$2].headers || Conf[pri$2].headers;
-            },
-
-            get defaultAction() {
-              return (this[pri$2].action || Conf[pri$2].action || DefaultAction).toLowerCase();
-            },
-
-            get defaultDictates() {
-              return this[pri$2].dictates || Conf[pri$2].dictates;
-            },
-
-            get baseUrl() {
-              return this[pri$2].baseUrl || Conf[pri$2].baseUrl;
-            },
-
-            get serializater() {
-              return this[pri$2].serializater || Conf[pri$2].serializater || DefaultSerializater;
-            },
-
-            get requestHandler() {
-              return this[pri$2].requestHandler || Conf[pri$2].requestHandler;
-            },
-
-            get preInterceptors() {
-              return this[pri$2].preInterceptors || Conf[pri$2].preInterceptors;
-            },
-
-            get postInterceptors() {
-              return this[pri$2].postInterceptors || Conf[pri$2].postInterceptors;
-            },
-
-            dictateMap: function dictateMap(dictateName) {
-              return this[pri$2].dictateHandlers && this[pri$2].dictateHandlers[dictateName] || Conf[pri$2].dictateHandlers && Conf[pri$2].dictateHandlers[dictateName];
-            }
-          };
+        if (this[pri$2].getter) {
+          return this[pri$2].getter;
         }
+
+        var that = this;
+        this[pri$2].getter = {
+          get headers() {
+            return that[pri$2].headers || Conf[pri$2].headers;
+          },
+
+          get defaultMethod() {
+            return (that[pri$2].defaultMethod || Conf[pri$2].defaultMethod || DefaultMethod).toLowerCase();
+          },
+
+          get dictates() {
+            return that[pri$2].dictates || Conf[pri$2].dictates;
+          },
+
+          get baseUrl() {
+            return that[pri$2].baseUrl || Conf[pri$2].baseUrl;
+          },
+
+          get serializater() {
+            return that[pri$2].serializater || Conf[pri$2].serializater || DefaultSerializater;
+          },
+
+          get requestHandler() {
+            return that[pri$2].requestHandler || Conf[pri$2].requestHandler;
+          },
+
+          get interceptors() {
+            return that[pri$2].interceptors || Conf[pri$2].interceptors;
+          },
+
+          get postInterceptors() {
+            return that[pri$2].postInterceptors || Conf[pri$2].postInterceptors;
+          },
+
+          getDictateHandler: function getDictateHandler(dictateName) {
+            return that[pri$2].dictateHandlers && that[pri$2].dictateHandlers[dictateName] || Conf[pri$2].dictateHandlers && Conf[pri$2].dictateHandlers[dictateName];
+          }
+        };
+        return this[pri$2].getter;
       }
     }]);
 
     return ConfigureGetter;
   }(Configure);
 
-  var _ref = [Symbol("requestOptions"), Symbol("requesters"), Symbol("configure"), Symbol("getRequestItem")],
-      rqots = _ref[0],
-      rqers = _ref[1],
-      in_conf = _ref[2],
-      getRequestItem = _ref[3];
+  var EmptyArr = [];
+  var EmptyObj = [];
+  var pri$3 = Symbol("privateScope");
 
   var EasyHttp =
   /*#__PURE__*/
@@ -865,20 +786,89 @@
     function EasyHttp(baseUrl, requests) {
       classCallCheck(this, EasyHttp);
 
-      this[in_conf] = new ConfigureGetter();
+      this[pri$3] = {
+        conf: new ConfigureGetter()
+      };
       this.setBaseUrl(baseUrl).addRequests(requests);
-    }
+    } //发起请求
+
 
     createClass(EasyHttp, [{
-      key: getRequestItem,
-      value: function value(key) {
-        this[rqers] || (this[rqers] = {});
+      key: "request",
+      value: function request(req) {
+        var conf = this[pri$3].conf.getter;
+        var requestHandler = conf.requestHandler;
+        var interceptors = [].concat(toConsumableArray(conf.interceptors || EmptyArr), [//最后一个拦截器必须是请求处理
+        function (request) {
+          return requestHandler(request);
+        }]);
+        var chain = new Chain(interceptors);
+        return chain.proceed({
+          url: req.url,
+          method: req.method,
+          data: req.data,
+          headers: objectSpread({}, conf.headers || EmptyObj, req.headers || EmptyObj),
+          extraData: req.extraData
+        });
+      }
+      /**
+       * 创建请求函数
+       */
 
-        if (key in this[rqots] && !(key in this[rqers])) {
-          this[rqers][key] = new Requester(this[rqots][key]);
-        }
+    }, {
+      key: "createHandler",
+      value: function createHandler(reqOpt) {
+        var _this = this;
 
-        return this[rqers] && this[rqers][key];
+        var _headers;
+
+        var handler = function handler(req) {
+          var url, method, data, headers, extraData;
+          method = reqOpt.method;
+          headers = _headers;
+
+          if (req) {
+            url = handler.getUrl(req.params);
+            data = req.data;
+
+            if (req.headers) {
+              headers = headers ? objectSpread({}, headers, req.headers) : req.headers;
+            }
+
+            extraData = req.extraData;
+          } else {
+            url = handler.getUrl();
+          }
+
+          return _this.request({
+            url: url,
+            method: method,
+            data: data,
+            headers: headers,
+            extraData: extraData
+          });
+        };
+
+        handler.setHeaders = function (h) {
+          _headers = h;
+          return handler;
+        };
+
+        handler.addHeaders = function (h) {
+          if (!h) {
+            return handler;
+          }
+
+          _headers = objectSpread({}, _headers || EmptyObj, h);
+          return handler;
+        };
+
+        handler.getUrl = function (data) {
+          var url = reqOpt.createUrl(data);
+          return url;
+        };
+
+        return handler;
       }
     }]);
 
@@ -890,24 +880,24 @@
     enumerable: false,
     get: function get() {
       return function (requests) {
-        var _this = this;
+        var _this2 = this;
 
-        if (requests) {
-          this[rqots] || (this[rqots] = {});
+        if (!requests) {
+          return this;
+        }
 
-          var _loop = function _loop(key) {
-            _this[rqots][key] = new RequestOption(_this[in_conf].configureGetter, requests[key]);
-            Object.defineProperty(_this, key, {
-              get: function get() {
-                var item = this[getRequestItem](key);
-                return item && item.handler;
-              }
-            });
-          };
+        var _loop = function _loop(key) {
+          var reqOpt = new RequestOption(_this2[pri$3].conf.getter, requests[key]);
+          console.log(JSON.stringify(reqOpt.odl));
+          Object.defineProperty(_this2, key, {
+            get: function get() {
+              return this.createHandler(reqOpt);
+            }
+          });
+        };
 
-          for (var key in requests) {
-            _loop(key);
-          }
+        for (var key in requests) {
+          _loop(key);
         }
 
         return this;
@@ -918,7 +908,7 @@
    * 对外配置方法注册为静态和非静态两种方式
    */
 
-  var funcs = ["init", "setBaseUrl", "setAction", "setDictate", "setHeaders", "addHeaders", "removeHeaders", "setRequestHandler", "setPreInterceptor", "addPreInterceptor", "setPostInterceptor", "addPostInterceptor", "setDictateHandler", "addDictateHandler", "removeDictateHandler", "setSerializater"];
+  var funcs = ["init", "setBaseUrl", "setDefaultMethod", "setDictate", "setHeaders", "addHeaders", "removeHeaders", "setRequestHandler", "setInterceptor", "addInterceptor", "setPostInterceptor", "addPostInterceptor", "setDictateHandler", "addDictateHandler", "removeDictateHandler", "setSerializater"];
   var n = funcs.length;
 
   var _loop2 = function _loop2(i) {
@@ -938,9 +928,9 @@
       enumerable: false,
       get: function get() {
         return function () {
-          var _this$in_conf;
+          var _this$pri$conf;
 
-          (_this$in_conf = this[in_conf])[key].apply(_this$in_conf, arguments);
+          (_this$pri$conf = this[pri$3].conf)[key].apply(_this$pri$conf, arguments);
 
           return this;
         }.bind(this);

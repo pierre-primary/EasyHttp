@@ -1,4 +1,4 @@
-import ODLUtils from "./odl-utils";
+import { initDictate } from "./odl-utils";
 
 //正则表达式-指令匹配
 const REG = /(?:{([^{}]*))?{\s*([a-z_][a-z0-9_]*)\s*((?::[a-z_][a-z0-9_]*)*)\s*}(?:([^{}]*)})?/gi;
@@ -30,7 +30,7 @@ class ODLConstructor {
                 });
             }
             let key = result[2];
-            let dictates = ODLUtils.initDictate(result[3]) || undefined;
+            let dictates = initDictate(result[3]) || undefined;
             nodes.push({
                 type: NODE_TYPE.CMD,
                 data: {

@@ -9,7 +9,7 @@
         "types/*.d.ts"
     ],
     "scripts": {
-        "build": "node build/rollup.prod.js"
+        "build": "node build/rollup.config.prod.js"
     },
     "repository": {
         "type": "git",
@@ -25,6 +25,7 @@
         "@babel/core": "^7.4.3",
         "@babel/plugin-transform-runtime": "^7.4.3",
         "@babel/preset-env": "^7.4.3",
+        "axios": "^0.18.0",
         "babel-eslint": "^10.0.1",
         "rollup": "^1.9.0",
         "rollup-plugin-babel": "^4.3.2",

@@ -1,7 +1,7 @@
 import { is } from "./utils/utils";
-import ODLUtils from "./odl/odl-utils";
+import { initDictate } from "./odl/odl-utils";
 
-const DefaultAction = "get";
+const DefaultMethod = "get";
 const DefaultSerializater = function(value) {
     if (is(value, Object)) {
         value = JSON.stringify(value);
@@ -22,11 +22,11 @@ class Configure {
             return;
         }
         this.setBaseUrl(options.baseUrl);
-        this.setAction(options.action);
+        this.setDefaultMethod(options.defaultMethod);
         this.setDictate(options.dictate);
         this.setHeaders(options.headers);
         this.setRequestHandler(options.requestHandler);
-        this.setPreInterceptor(options.preInterceptors);
+        this.setInterceptor(options.interceptors);
         this.setPostInterceptor(options.postInterceptors);
         this.setSerializater(options.serializater);
     }
@@ -36,13 +36,13 @@ class Configure {
         return this;
     }
 
-    setAction(action) {
-        this[pri].action = action;
+    setDefaultMethod(defaultMethod) {
+        this[pri].defaultMethod = defaultMethod;
         return this;
     }
 
     setDictate(dictateStr) {
-        this[pri].dictates = ODLUtils.initDictate(dictateStr);
+        this[pri].dictates = initDictate(dictateStr);
         return this;
     }
 
@@ -80,18 +80,18 @@ class Configure {
         return this;
     }
 
-    setPreInterceptor(...preInterceptors) {
-        if (preInterceptors && preInterceptors.length > 0) {
-            this[pri].preInterceptors = [...preInterceptors];
+    setInterceptor(...interceptors) {
+        if (interceptors && interceptors.length > 0) {
+            this[pri].interceptors = [...interceptors];
         } else {
-            this[pri].preInterceptors = null;
+            this[pri].interceptors = null;
         }
     }
 
-    addPreInterceptor(...preInterceptors) {
-        if (preInterceptors && preInterceptors.length > 0) {
-            this[pri].preInterceptors || (this[pri].preInterceptors = []);
-            this[pri].preInterceptors.push(...preInterceptors);
+    addInterceptor(...interceptors) {
+        if (interceptors && interceptors.length > 0) {
+            this[pri].interceptors || (this[pri].interceptors = []);
+            this[pri].interceptors.push(...interceptors);
         }
         return this;
     }
@@ -146,14 +146,6 @@ class Configure {
         this[pri].serializater = serializater;
         return this;
     }
-
-    /**
-     * 插件安装
-     */
-    use(plugin) {
-        plugin.install(this);
-        return this;
-    }
 }
 
 const Conf = new Configure();
@@ -161,48 +153,51 @@ const Conf = new Configure();
 export default Conf;
 
 export class ConfigureGetter extends Configure {
-    get configureGetter() {
-        if (!this[pri].configGetter) {
-            this[pri].configGetter = {
-                get defaultHeaders() {
-                    return this[pri].headers || Conf[pri].headers;
-                },
-
-                get action() {
-                    return (this[pri].action || Conf[pri].action || DefaultAction).toLowerCase();
-                },
-
-                get dictates() {
-                    return this[pri].dictates || Conf[pri].dictates;
-                },
-
-                get baseUrl() {
-                    return this[pri].baseUrl || Conf[pri].baseUrl;
-                },
-
-                get serializater() {
-                    return this[pri].serializater || Conf[pri].serializater || DefaultSerializater;
-                },
-
-                get requestHandler() {
-                    return this[pri].requestHandler || Conf[pri].requestHandler;
-                },
-
-                get preInterceptors() {
-                    return this[pri].preInterceptors || Conf[pri].preInterceptors;
-                },
-
-                get postInterceptors() {
-                    return this[pri].postInterceptors || Conf[pri].postInterceptors;
-                },
-
-                getDictateHandler(dictateName) {
-                    return (
-                        (this[pri].dictateHandlers && this[pri].dictateHandlers[dictateName]) ||
-                        (Conf[pri].dictateHandlers && Conf[pri].dictateHandlers[dictateName])
-                    );
-                }
-            };
+    get getter() {
+        if (this[pri].getter) {
+            return this[pri].getter;
         }
+        let that = this;
+        this[pri].getter = {
+            get headers() {
+                return that[pri].headers || Conf[pri].headers;
+            },
+
+            get defaultMethod() {
+                return (that[pri].defaultMethod || Conf[pri].defaultMethod || DefaultMethod).toLowerCase();
+            },
+
+            get dictates() {
+                return that[pri].dictates || Conf[pri].dictates;
+            },
+
+            get baseUrl() {
+                return that[pri].baseUrl || Conf[pri].baseUrl;
+            },
+
+            get serializater() {
+                return that[pri].serializater || Conf[pri].serializater || DefaultSerializater;
+            },
+
+            get requestHandler() {
+                return that[pri].requestHandler || Conf[pri].requestHandler;
+            },
+
+            get interceptors() {
+                return that[pri].interceptors || Conf[pri].interceptors;
+            },
+
+            get postInterceptors() {
+                return that[pri].postInterceptors || Conf[pri].postInterceptors;
+            },
+
+            getDictateHandler(dictateName) {
+                return (
+                    (that[pri].dictateHandlers && that[pri].dictateHandlers[dictateName]) ||
+                    (Conf[pri].dictateHandlers && Conf[pri].dictateHandlers[dictateName])
+                );
+            }
+        };
+        return this[pri].getter;
     }
 }

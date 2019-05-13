@@ -1,110 +1,78 @@
 import RequestOption from "./request-option";
-import Requester from "./requester";
+import Chain from "./chain";
 import Conf, { ConfigureGetter } from "./configure";
 
-//私有属性名
-const [rqots, rqers, conf, getRequestItem] = [
-    Symbol("requestOptions"),
-    Symbol("requesters"),
-    Symbol("configure"),
-    Symbol("getRequestItem")
-];
+const EmptyArr = [];
+const EmptyObj = [];
+
+const pri = Symbol("privateScope");
 
 class EasyHttp {
     constructor(baseUrl, requests) {
-        this[conf] = new ConfigureGetter();
+        this[pri] = { conf: new ConfigureGetter() };
         this.setBaseUrl(baseUrl).addRequests(requests);
     }
 
-    [getRequestItem](key) {
-        this[rqers] || (this[rqers] = {});
-        if (key in this[rqots] && !(key in this[rqers])) {
-            this[rqers][key] = new Requester(this[rqots][key]);
-        }
-        return this[rqers] && this[rqers][key];
+    //发起请求
+    request(req) {
+        let conf = this[pri].conf.getter;
+        let requestHandler = conf.requestHandler;
+        let interceptors = [
+            //拦截器
+            ...(conf.interceptors || EmptyArr),
+            //最后一个拦截器必须是请求处理
+            request => {
+                return requestHandler(request);
+            }
+        ];
+
+        let chain = new Chain(interceptors);
+
+        return chain.proceed({
+            url: req.url,
+            method: req.method,
+            data: req.data,
+            headers: { ...(conf.headers || EmptyObj), ...(req.headers || EmptyObj) },
+            extraData: req.extraData
+        });
     }
     /**
      * 创建请求函数
      */
     createHandler(reqOpt) {
-        let conf = this[conf].configureGetter;
-        let header;
-        let handler = function(req) {
-            let promise = new Promise((resolve, reject) => {
-                let request = {
-                    url: handler.getUrl(req && req.params),
-                    params: req && req.params,
-                    action: reqOpt.action,
-                    data: req && req.data,
-                    other: req && req.other,
-                    header: req.header ? { ...handler.getHeaders(), ...req.header } : handler.getHeaders()
-                };
-                let requestHandler = conf.requestHandler;
-                if (requestHandler) {
-                    let preInterceptors = conf.preInterceptors;
-                    if (preInterceptors && preInterceptors.length > 0) {
-                        for (let i = 0, len = preInterceptors.length; i < len; i++) {
-                            if (preInterceptors[i](request, resolve, reject)) {
-                                return;
-                            }
-                        }
-                    }
-                    try {
-                        requestHandler(request)
-                            .then(resp => {
-                                resolve({
-                                    request,
-                                    response: resp
-                                });
-                            })
-                            .catch(resp => {
-                                reject({
-                                    errType: 0,
-                                    request,
-                                    response: resp
-                                });
-                            });
-                    } catch (e) {
-                        reject({
-                            errType: -1,
-                            request,
-                            msg: e
-                        });
-                    }
-                } else {
-                    reject({
-                        errType: -1,
-                        request,
-                        msg: "not found handler"
-                    });
+        let _headers;
+        let handler = req => {
+            let url, method, data, headers, extraData;
+            method = reqOpt.method;
+            headers = _headers;
+            if (req) {
+                url = handler.getUrl(req.params);
+                data = req.data;
+                if (req.headers) {
+                    headers = headers ? { ...headers, ...req.headers } : req.headers;
                 }
-            });
-            let postInterceptors = conf.postInterceptors;
-            if (postInterceptors && postInterceptors.length > 0) {
-                return Promise.resolve().then(() => {
-                    let _p = promise;
-                    for (let i = 0, len = postInterceptors.length; i < len; i++) {
-                        _p = postInterceptors[i](_p);
-                    }
-                    return _p;
-                });
+                extraData = req.extraData;
             } else {
-                return promise;
+                url = handler.getUrl();
             }
+            return this.request({
+                url: url,
+                method: method,
+                data: data,
+                headers: headers,
+                extraData: extraData
+            });
         };
         handler.setHeaders = function(h) {
-            header = h ? { ...h } : null;
+            _headers = h;
             return handler;
         };
         handler.addHeaders = function(h) {
             if (!h) {
                 return handler;
             }
-            header = { ...this.getHeaders(), ...h };
+            _headers = { ...(_headers || EmptyObj), ...h };
             return handler;
-        };
-        handler.getHeaders = function() {
-            return header || reqOpt.header;
         };
         handler.getUrl = function(data) {
             let url = reqOpt.createUrl(data);
@@ -119,17 +87,16 @@ Object.defineProperty(EasyHttp.prototype, "addRequests", {
     enumerable: false,
     get: function() {
         return function(requests) {
-            if (requests) {
-                this[rqots] || (this[rqots] = {});
-                for (let key in requests) {
-                    this[rqots][key] = new RequestOption(this[in_conf].configureGetter, requests[key]);
-                    Object.defineProperty(this, key, {
-                        get: function() {
-                            let item = this[getRequestItem](key);
-                            return item && item.handler;
-                        }
-                    });
-                }
+            if (!requests) {
+                return this;
+            }
+            for (let key in requests) {
+                let reqOpt = new RequestOption(this[pri].conf.getter, requests[key]);
+                Object.defineProperty(this, key, {
+                    get: function() {
+                        return this.createHandler(reqOpt);
+                    }
+                });
             }
             return this;
         }.bind(this);
@@ -142,14 +109,14 @@ Object.defineProperty(EasyHttp.prototype, "addRequests", {
 const funcs = [
     "init",
     "setBaseUrl",
-    "setAction",
+    "setDefaultMethod",
     "setDictate",
     "setHeaders",
     "addHeaders",
     "removeHeaders",
     "setRequestHandler",
-    "setPreInterceptor",
-    "addPreInterceptor",
+    "setInterceptor",
+    "addInterceptor",
     "setPostInterceptor",
     "addPostInterceptor",
     "setDictateHandler",
@@ -177,7 +144,7 @@ for (let i = 0; i < n; i++) {
         enumerable: false,
         get: function() {
             return function() {
-                this[in_conf][key](...arguments);
+                this[pri].conf[key](...arguments);
                 return this;
             }.bind(this);
         }
