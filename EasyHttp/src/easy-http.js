@@ -38,7 +38,10 @@ class EasyHttp {
         if (req.coverHeaders) {
             headers = req.headers || EmptyObj;
         } else {
-            headers = { ...(conf.headers || EmptyObj), ...(req.headers || EmptyObj) };
+            headers = {
+                ...(conf.headers || EmptyObj),
+                ...(req.headers || EmptyObj)
+            };
         }
 
         return chain.proceed({
@@ -91,7 +94,10 @@ Object.defineProperty(EasyHttp.prototype, "addRequests", {
                 return this;
             }
             for (let key in requests) {
-                let reqOpt = new RequestOption(this[pri].conf.getter, requests[key]);
+                let reqOpt = new RequestOption(
+                    this[pri].conf.getter,
+                    requests[key]
+                );
                 Object.defineProperty(this, key, {
                     get: function() {
                         return this.createHandler(reqOpt);

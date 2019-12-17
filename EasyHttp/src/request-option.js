@@ -1,6 +1,6 @@
 import { is } from "./utils/utils";
 import { initDictate } from "./odl/odl-utils";
-import ODL, { NODE_TYPE } from "./odl/odl";
+import ODL, { NODE_TYPE } from "./odl";
 
 const pri = Symbol("privateScope");
 
@@ -37,7 +37,8 @@ export default class RequestOption {
 
     get odl() {
         if (!("odl" in this[pri])) {
-            this[pri].odl = (this.urlFormat && new ODL(this.urlFormat)) || undefined;
+            this[pri].odl =
+                (this.urlFormat && new ODL(this.urlFormat)) || undefined;
         }
         return this[pri].odl;
     }
@@ -63,7 +64,8 @@ export default class RequestOption {
                     if (val === undefined) {
                         continue;
                     }
-                    block = (cmdData.prefix || "") + val + (cmdData.suffix || "");
+                    block =
+                        (cmdData.prefix || "") + val + (cmdData.suffix || "");
                     break;
             }
             urlFormat = urlFormat + block;

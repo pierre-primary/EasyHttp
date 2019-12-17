@@ -1,4 +1,4 @@
-export default class Chain {
+class Chain {
     constructor(interceptors, index = 0) {
         this.interceptors = interceptors;
         this.index = index;
@@ -9,6 +9,10 @@ export default class Chain {
             throw "It's the last interceptor";
         }
         let chain = new Chain(this.interceptors, this.index + 1);
-        return this.interceptors[this.index](request, request => chain.proceed(request));
+        return this.interceptors[this.index](request, request =>
+            chain.proceed(request)
+        );
     }
 }
+module.exports = Chain;
+module.exports.default = Chain;
